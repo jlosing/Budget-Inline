@@ -11,7 +11,6 @@ import { FormsModule } from '@angular/forms';
 })
 export class AddFeedbackFormComponent {
   
-
   feedbackService = inject(FeedbackService);
 
   feedback: Feedback = {
@@ -27,7 +26,7 @@ export class AddFeedbackFormComponent {
     this.feedbackService.getFeedback().subscribe(data => this.feedbackList = data);
   }
 
-  addFinance() {
+  addFeedback() {
     this.feedbackService.addFeedback(this.feedback);
     this.resetForm();
   }
@@ -41,16 +40,16 @@ export class AddFeedbackFormComponent {
     this.editFeedbackId = null;
   }
 
-  setEditFinance(finance: Feedback) {
-    this.feedback = {...finance};
-    this.editFeedbackId = finance.id;
+  setEditFeedback(feedback: Feedback) {
+    this.feedback = {...feedback};
+    this.editFeedbackId = feedback.id;
   }
 
-  deleteFinance(id: string) {
+  deleteFeedback(id: string) {
     this.feedbackService.deleteFeedback(id);
   }
 
-  updateFinance() {
+  updateFeedback() {
     this.feedbackService.updateFeedback(this.feedback);
   }
 }
