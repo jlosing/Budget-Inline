@@ -1,0 +1,17 @@
+<div class="card mb-3 p-4">
+    <h5 class="card-title mb-3">Add Finance</h5>
+    <p class="card-text text-muted">Name:
+      <input type="text" name="firstName" class="form-control inputBox" [(ngModel)]="newFinance.name" #financeFName>
+    </p>
+    <p class="card-text text-muted">Source:
+      <input type="text" name="lastName" class="form-control inputBox" [(ngModel)]="newFinance.source" #financeLName>
+    </p>
+    <p class="card-text text-muted">Description:
+      <input type="text" name="phoneNumber" class="form-control inputBox" [(ngModel)]="newFinance.description" #financePhone>
+    </p>
+    <div class="text-end">
+      <!-- <button class="addButton btn btn-primary" (click)="CreateFinance()" routerLink="">Add</button> <-- CreateFinance() Isn't working correctly yet-->
+      <button class="addButton btn btn-primary" routerLink="">Add</button>
+      <button class="addButton btn btn-danger" routerLink="">Cancel</button>
+    </div>
+</div>
