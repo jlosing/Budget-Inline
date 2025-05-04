@@ -1,0 +1,16 @@
+<h2 class="text-center">Income</h2>
+<div class="container my-4">
+  <div class="card shadow">
+    <div class="card-header bg-dark text-white">Income Chart</div>
+    <div class="card-body">
+      <canvas
+        baseChart
+        [data]="barChartData"
+        [type]="barChartType"
+        [options]="barChartOptions"
+        [legend]="barChartLegend"
+      >
+      </canvas>
+    </div>
+  </div>
+</div>
