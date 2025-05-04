@@ -1,11 +1,13 @@
+
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { Finance, FinanceService } from './finance.service';
+import { NavbarComponent } from './navbar/navbar.component';
 import { AddFinanceFormComponent } from './add-finance-form/add-finance-form.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, AddFinanceFormComponent, RouterLink],
+  imports: [RouterOutlet, AddFinanceFormComponent, RouterLink, NavbarComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
