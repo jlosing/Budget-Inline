@@ -1,13 +1,15 @@
 <div class="card mb-3 p-4">
-    <h1 class="card-title mb-3 justify-center-content" style="text-align:center;">Add Finance</h1>
+    <h1 class="card-title mb-3 justify-center-content" style="text-align:center;">Feedback</h1>
     <hr>
     <div>
         <p class="card-text text-muted">Feedback:
-          <input type="text" name="firstName" class="form-control inputBox" [(ngModel)]="feedback.feedback" #financeFName>
+          <textarea class="form-control" style="height:200px" placeholder="" [(ngModel)]="feedback.feedback" required></textarea>
+          <!-- <div class="invalid-feedback">Please enter a message in the textarea.</div> -->
+          <!-- <input type="text" name="firstName" style="height:200px" class="form-control inputBox" [(ngModel)]="feedback.feedback" #financeFName> -->
         </p>
         <div class="text-end">
-          <!-- <button class="addButton btn btn-primary" (click)="addFeedback()" routerLink="">Add</button> addFeedback() Isn't working correctly yet -->
-          <button class="addButton btn btn-primary" routerLink="">Add</button>
+          <button class="addButton btn btn-primary" (click)="addFeedback()" routerLink="">Submit</button> 
+          <!-- <button class="addButton btn btn-primary" routerLink="">Submit</button> -->
           <button class="addButton btn btn-danger" routerLink="">Cancel</button>
         </div>
     </div>

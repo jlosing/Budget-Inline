@@ -25,7 +25,7 @@ export class FeedbackService {
 
   addFeedback(newFeedback: Feedback) {
     const feedbackRef = doc(this.feedbackCollection);
-    const newId = feedbackRef.id;
+    newFeedback.id = feedbackRef.id;
     setDoc(feedbackRef, newFeedback);
   }
 

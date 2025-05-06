@@ -3,6 +3,7 @@ import { AppComponent } from './app.component';
 import { AddFinanceFormComponent } from './add-finance-form/add-finance-form.component';
 import { AddFeedbackFormComponent } from './add-feedback-form/add-feedback-form.component';
 import { IncomeTrackingComponent } from './income-tracking/income-tracking.component';
+import { ViewFeedbackFormComponent } from './view-feedback-form/view-feedback-form.component';
 
 export const routes: Routes = [
     // {
@@ -24,6 +25,11 @@ export const routes: Routes = [
         path: 'feedback',
         component: AddFeedbackFormComponent,
         title: 'Feedback',
+    },
+    {
+        path: 'viewFeedback',
+        component: ViewFeedbackFormComponent,
+        title: 'View Feedback',
     },
 ];
 
