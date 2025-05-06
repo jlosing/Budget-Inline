@@ -17,7 +17,7 @@ export class IncomeTrackingService {
   private firestore = inject(Firestore);
 
   getIncomesOrdered(): Observable<Income[]> {
-    const incomeRef = collection(this.firestore, 'income');
+    const incomeRef = collection(this.firestore, 'income-test');
     const orderedQuery = query(incomeRef, orderBy('Month')); // Note: case-sensitive!
     return collectionData(orderedQuery, { idField: 'id' }) as Observable<Income[]>;
   }
