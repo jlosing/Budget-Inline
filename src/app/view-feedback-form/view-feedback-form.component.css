@@ -15,3 +15,7 @@ td {
     height: 100%;
     border: none;
 }
+
+.viewFeedbackButton {
+    min-width: 70px;
+}

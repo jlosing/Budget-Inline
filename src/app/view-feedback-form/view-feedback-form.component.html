@@ -14,7 +14,8 @@
                   <td>{{ feedback.feedback }}</td>
                   <td><textarea class="viewFeedbackTextArea" [(ngModel)]="feedback.adminComment"></textarea></td>
                   <td class="text-center align-middle">
-                    <button class="btn btn-primary" (click)="updateFeedback(feedback)">Save</button>
+                    <button class="viewFeedbackButton btn btn-primary" (click)="updateFeedback(feedback)">Save</button>
+                    <button class="viewFeedbackButton btn btn-danger" style="margin-top: 10px;" (click)="deleteFeedback(feedback)">Delete</button>
                   </td>
                 </tr>
             }

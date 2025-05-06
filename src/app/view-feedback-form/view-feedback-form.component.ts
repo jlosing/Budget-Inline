@@ -21,17 +21,18 @@ export class ViewFeedbackFormComponent implements OnInit {
   feedbackList: Feedback[] = []
 
   ngOnInit(): void {
-    console.log("Started Viewing Feedback Form");
     this.feedbackService.getFeedback().subscribe(data => this.feedbackList = data);
   }
 
   updateFeedbackList() {
-    console.log("updateFeedbackList called");
     this.feedbackList.forEach(this.updateFeedback);
   }
 
   updateFeedback(updatedFeedback: Feedback) {
-    console.log("updateFeedback called");
     this.feedbackService.updateFeedback(updatedFeedback);
+  }
+
+  deleteFeedback(updatedFeedback: Feedback) {
+    this.feedbackService.deleteFeedback(updatedFeedback);
   }
 }
