@@ -35,4 +35,9 @@ export class ViewFeedbackFormComponent implements OnInit {
   deleteFeedback(updatedFeedback: Feedback) {
     this.feedbackService.deleteFeedback(updatedFeedback);
   }
+
+  myFunction() {
+    if (confirm("Press a button!")) {
+    }
+  }
 }
