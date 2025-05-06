@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 export interface Finance {
   id: string,
+  user_id: string,
   name: string,
   source?: string,
   description?: string,
@@ -37,7 +38,7 @@ export class FinanceService {
 
   addFinance(newFinance: Finance) {
     const financeRef = doc(this.financesCollection);
-    const newId = financeRef.id;
+    newFinance.id = financeRef.id;
     setDoc(financeRef, newFinance);
   }
 

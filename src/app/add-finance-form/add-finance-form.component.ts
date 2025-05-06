@@ -15,6 +15,7 @@ export class AddFinanceFormComponent implements OnInit {
 
   finance: Finance = {
     id: '',
+    user_id: '',
     name: '',
     source: '',
     description: '',
@@ -47,6 +48,7 @@ export class AddFinanceFormComponent implements OnInit {
   resetForm() {
     this.finance = {
       id: '',
+      user_id: '',
       name: '',
       source: '',
       description: '',

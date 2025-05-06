@@ -25,7 +25,7 @@ export class FeedbackService {
 
   addFeedback(newFeedback: Feedback) {
     const feedbackRef = doc(this.feedbackCollection);
-    const newId = feedbackRef.id;
+    newFeedback.id = feedbackRef.id;
     setDoc(feedbackRef, newFeedback);
   }
 
@@ -34,8 +34,8 @@ export class FeedbackService {
     updateDoc(feedbackRef,{...feedback});
   }
 
-  deleteFeedback(id: string) {
-    const feedbackRef = doc(this.firestore, `feedback/${id}`);
+  deleteFeedback(feedback: Feedback) {
+    const feedbackRef = doc(this.firestore, `feedback/${feedback.id}`);
     deleteDoc(feedbackRef);
   }
 

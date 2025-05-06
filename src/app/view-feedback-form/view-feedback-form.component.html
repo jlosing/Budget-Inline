@@ -1,0 +1,24 @@
+<div class="card mb-3 p-4">
+    <h1 class="card-title mb-3 justify-center-content" style="text-align:center;">Feedback</h1>
+    <table class="table table-bordered">
+        <thead>
+          <tr class="table-success">
+            <th scope="col" class="w-75 min-vh-100 p-3">Feedback</th>
+            <th scope="col" class="w-75 p-3">Admin Comments</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+            @for(feedback of feedbackList; track feedback.id) {
+                <tr>
+                  <td>{{ feedback.feedback }}</td>
+                  <td><textarea class="viewFeedbackTextArea" [(ngModel)]="feedback.adminComment"></textarea></td>
+                  <td class="text-center align-middle">
+                    <button class="viewFeedbackButton btn btn-primary" (click)="updateFeedback(feedback)">Save</button>
+                    <button class="viewFeedbackButton btn btn-danger" style="margin-top: 10px;" (click)="deleteFeedback(feedback)">Delete</button>
+                  </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

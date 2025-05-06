@@ -18,7 +18,6 @@ export class AddFeedbackFormComponent {
     feedback: '',
     adminComment: '',
   }
-  editFeedbackId: string | null = null;
 
   feedbackList: Feedback[] = []
 
@@ -37,19 +36,5 @@ export class AddFeedbackFormComponent {
       feedback: '',
       adminComment: '',
     }
-    this.editFeedbackId = null;
-  }
-
-  setEditFeedback(feedback: Feedback) {
-    this.feedback = {...feedback};
-    this.editFeedbackId = feedback.id;
-  }
-
-  deleteFeedback(id: string) {
-    this.feedbackService.deleteFeedback(id);
-  }
-
-  updateFeedback() {
-    this.feedbackService.updateFeedback(this.feedback);
   }
 }
