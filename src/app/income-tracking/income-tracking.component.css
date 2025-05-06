@@ -1,0 +1,16 @@
+.trend-up {
+    color: green;
+    font-weight: bold;
+    /* Optional: make it a bit bolder */
+}
+
+.trend-down {
+    color: red;
+    font-weight: bold;
+    /* Optional: make it a bit bolder */
+}
+
+.trend-neutral {
+    color: inherit;
+    /* Or your default text color, e.g., black */
+}

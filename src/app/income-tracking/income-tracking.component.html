@@ -1,16 +1,168 @@
 <h2 class="text-center">Income</h2>
-<div class="container my-4">
-  <div class="card shadow">
-    <div class="card-header bg-dark text-white">Income Chart</div>
+<div class="my-4 mx-4">
+  <div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white">Income Chart</div>
     <div class="card-body">
-      <canvas
-        baseChart
-        [data]="barChartData"
-        [type]="barChartType"
-        [options]="barChartOptions"
-        [legend]="barChartLegend"
-      >
-      </canvas>
+      @if (barChartData.datasets[0] && barChartData.datasets[0].data.length > 0)
+      {
+      <div style="display: block">
+        <canvas
+          baseChart
+          [data]="barChartData"
+          [options]="barChartOptions"
+          [type]="barChartType"
+          [legend]="barChartLegend"
+        >
+        </canvas>
+      </div>
+      } @else {
+      <p class="text-center text-muted">No chart data to display.</p>
+      }
     </div>
+  </div>
+
+  <div class="card shadow my-4">
+    <div class="card-header">Income Trend Analysis</div>
+    <div class="card-body">
+      @if (trendDisplayParts && trendDisplayParts.prefix &&
+      trendDisplayParts.trendText && trendDisplayParts.suffix) {
+      <p>
+        {{ trendDisplayParts.prefix }}
+        <span
+          [ngClass]="{
+            'trend-up':
+              trendDisplayParts.status === 'positive' ||
+              trendDisplayParts.status === 'significant_increase_from_zero',
+            'trend-down': trendDisplayParts.status === 'negative',
+            'trend-neutral':
+              trendDisplayParts.status === 'neutral' ||
+              trendDisplayParts.status === 'no_change_from_zero'
+          }"
+        >
+          {{ trendDisplayParts.trendText }}
+        </span>
+        {{ trendDisplayParts.suffix }}
+      </p>
+      } @else {
+      <p>{{ statusMessage }}</p>
+      } @if (latestMonthIncome && secondLatestMonthIncome) {
+      <hr />
+      <p class="mb-1">
+        <strong>{{ getFormattedDateForIncome(latestMonthIncome) }}:</strong>
+        {{ latestMonthIncome.Amount | currency }}
+      </p>
+      <p class="mb-1">
+        <strong
+          >{{ getFormattedDateForIncome(secondLatestMonthIncome) }}:</strong
+        >
+        {{ secondLatestMonthIncome.Amount | currency }}
+      </p>
+      @if (numericPercentageChange !== null) { @if
+      (isNumericPercentageChangeInfinite) {
+      <p>
+        <strong>Percentage Change:</strong>
+        <span class="trend-up">Significantly up (from zero)</span>
+      </p>
+      } @else {
+      <p>
+        <strong>Percentage Change:</strong>
+        <span
+          [ngClass]="{
+            'trend-up': numericPercentageChange > 0,
+            'trend-down': numericPercentageChange < 0,
+            'trend-neutral': numericPercentageChange === 0
+          }"
+        >
+          {{ numericPercentageChange > 0 ? "+" : ""
+          }}{{ numericPercentageChange | number : "1.2-2" }}%
+        </span>
+      </p>
+      } } } @else if (latestMonthIncome && !secondLatestMonthIncome) {
+      <p class="mb-1">
+        <strong>{{ getFormattedDateForIncome(latestMonthIncome) }}:</strong>
+        {{ latestMonthIncome.Amount | currency }}
+      </p>
+      <p>{{ statusMessage }}</p>
+      }
+    </div>
+  </div>
+
+  <h2 class="mt-4">Base Data (Testing):</h2>
+  @if (incomes && incomes.length > 0) { @for (income of incomes; track income.id
+  || $index) {
+  <p>
+    Month: {{ getFormattedDateForIncome(income) }} Amount:
+    {{ income.Amount | currency }}
+  </p>
+  } } @else {
+  <p class="text-muted">No base income data to display.</p>
+  }
+</div>
+
+<div class="card shadow my-4 mx-4">
+  <div class="card-header">Income Trend Analysis</div>
+  <div class="card-body">
+    @if (trendDisplayParts && trendDisplayParts.prefix &&
+    trendDisplayParts.trendText && trendDisplayParts.suffix) {
+    <p>
+      {{ trendDisplayParts.prefix }}
+      <span
+        [ngClass]="{
+          'trend-up':
+            trendDisplayParts.status === 'positive' ||
+            trendDisplayParts.status === 'significant_increase_from_zero',
+          'trend-down': trendDisplayParts.status === 'negative',
+          'trend-neutral':
+            trendDisplayParts.status === 'neutral' ||
+            trendDisplayParts.status === 'no_change_from_zero'
+        }"
+      >
+        {{ trendDisplayParts.trendText }}
+      </span>
+      {{ trendDisplayParts.suffix }}
+    </p>
+    } @else {
+    <p>{{ statusMessage }}</p>
+    } @if (latestMonthIncome && secondLatestMonthIncome) {
+    <hr />
+    <p class="mb-1">
+      <strong> {{ getFormattedDateForIncome(latestMonthIncome) }}: </strong>
+      {{ latestMonthIncome.Amount | currency }}
+    </p>
+
+    <p class="mb-1">
+      <strong>
+        {{ getFormattedDateForIncome(secondLatestMonthIncome) }}:
+      </strong>
+      {{ secondLatestMonthIncome.Amount | currency }}
+    </p>
+
+    @if (numericPercentageChange !== null) { @if
+    (isNumericPercentageChangeInfinite) {
+    <p>
+      <strong>Percentage Change:</strong>
+      <span class="trend-up">Significantly up (from zero)</span>
+    </p>
+    } @else {
+    <p>
+      <strong>Percentage Change:</strong>
+      <span
+        [ngClass]="{
+          'trend-up': numericPercentageChange > 0,
+          'trend-down': numericPercentageChange < 0,
+          'trend-neutral': numericPercentageChange === 0
+        }"
+      >
+        {{ numericPercentageChange > 0 ? "+" : ""
+        }}{{ numericPercentageChange | number : "1.2-2" }}%
+      </span>
+    </p>
+    } } } @else if (latestMonthIncome && !secondLatestMonthIncome) {
+    <p class="mb-1">
+      <strong> {{ getFormattedDateForIncome(latestMonthIncome) }}: </strong>
+      {{ latestMonthIncome.Amount | currency }}
+    </p>
+    <p>{{ statusMessage }}</p>
+    }
   </div>
 </div>

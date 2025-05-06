@@ -6,11 +6,6 @@ import { IncomeTrackingComponent } from './income-tracking/income-tracking.compo
 import { ViewFeedbackFormComponent } from './view-feedback-form/view-feedback-form.component';
 
 export const routes: Routes = [
-    // {
-    //     path: '',
-    //     component: AppComponent,
-    //     title: 'Home',
-    // },
     { 
         path: 'income', 
         component: IncomeTrackingComponent,
