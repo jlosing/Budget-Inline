@@ -4,10 +4,11 @@ import { AddFinanceFormComponent } from './add-finance-form/add-finance-form.com
 import { AddFeedbackFormComponent } from './add-feedback-form/add-feedback-form.component';
 import { IncomeTrackingComponent } from './income-tracking/income-tracking.component';
 import { ViewFeedbackFormComponent } from './view-feedback-form/view-feedback-form.component';
+import { BudgetViewComponent } from './budget-view/budget-view.component';
 
 export const routes: Routes = [
     { 
-        path: 'income', 
+        path: '', 
         component: IncomeTrackingComponent,
         title: 'Income'
     },   
@@ -26,5 +27,10 @@ export const routes: Routes = [
         component: ViewFeedbackFormComponent,
         title: 'View Feedback',
     },
+    {
+        path: 'view-budget',
+        component: BudgetViewComponent,
+        title: 'Budget View',
+    }
 ];
 

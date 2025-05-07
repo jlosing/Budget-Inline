@@ -1,1 +1,25 @@
-<p>budget-view works!</p>
+<div class="container">
+  <h2 class="text-center">My Budget</h2>
+  @if (userBudget?.budgetId) {
+  <p>{{ userBudget?.budgetId }}</p>
+  } @if(userBudget?.name) {
+  <p>{{ userBudget?.name }}</p>
+  } @if(userBudget?.uid) {
+  <p>{{ userBudget?.uid }}</p>
+  }@if (userBudget && userBudget.categories) {
+  <h4>Budget Categories:</h4>
+  <ul class="list-group d-inline-flex">
+    @for (categoryItem of (userBudget.categories | keyvalue); track
+    categoryItem.key) {
+    <li class="list-group-item">
+      {{ categoryItem.key }}:
+      {{ categoryItem.value }}
+      <button class="btn btn-primary">Edit</button>
+    </li>
+
+    }
+  </ul>
+  } @else if (userBudget && !userBudget.categories) {
+  <p>This budget does not have any specific categories defined.</p>
+  }
+</div>
