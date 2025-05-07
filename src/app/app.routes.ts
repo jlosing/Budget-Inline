@@ -41,6 +41,7 @@ export const routes: Routes = [
         component: TransactionComponent,
         title: 'Transactions',
     },
+    {
 
         path: 'register',
         component: RegisterComponent,
