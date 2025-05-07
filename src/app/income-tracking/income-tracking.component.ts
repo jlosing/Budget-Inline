@@ -42,9 +42,6 @@ export class IncomeTrackingComponent implements OnInit {
     return this.numericPercentageChange === Number.POSITIVE_INFINITY;
   }
 
-  // In your IncomeTrackingComponent.ts
-
-// In your IncomeTrackingComponent.ts
 
 trendDisplayParts: {
     prefix?: string;                 // e.g., "Income for June 2025 is "
@@ -56,11 +53,6 @@ trendDisplayParts: {
 numericPercentageChange: number | null = null; // For the separate "Percentage Change:" line
 statusMessage: string = 'Insufficient data to determine trend.'; // General status/fallback
 
-// ... (other properties like barChartData, etc.)
-
-// In IncomeTrackingComponent.ts
-
-// In your IncomeTrackingComponent.ts
 public getFormattedDateForIncome(income: Income | null): string {
   if (income && income.Month && typeof income.Month.toDate === 'function') {
     try {
@@ -75,7 +67,6 @@ public getFormattedDateForIncome(income: Income | null): string {
 
 ngOnInit(): void {
   this.incomeService.getIncomesOrdered().subscribe((fetchedIncomes: Income[]) => {
-    // 1. Log the raw fetched data and its length IMMEDIATELY
     console.log('Fetched Incomes (Raw):', JSON.stringify(fetchedIncomes));
     console.log('Fetched Incomes Length:', fetchedIncomes.length);
 
@@ -83,7 +74,6 @@ ngOnInit(): void {
 
     this.incomes = fetchedIncomes;
 
-    // 2. Reset fields and log initial statusMessage
     this.latestMonthIncome = null;
     this.secondLatestMonthIncome = null;
     this.numericPercentageChange = null;
@@ -95,16 +85,12 @@ ngOnInit(): void {
     if (fetchedIncomes && fetchedIncomes.length > 0) {
       console.log('Condition (fetchedIncomes && fetchedIncomes.length > 0) is TRUE.');
 
-      // --- Chart Data Population (remains the same) ---
       const newLabels = fetchedIncomes.map(i => i.Month.toDate().toLocaleString('default', { month: 'short', year: 'numeric' }));
       const newData = fetchedIncomes.map(i => i.Amount);
       this.barChartData = {
         labels: newLabels,
         datasets: [{ data: newData, label: this.barChartData.datasets[0]?.label || 'Monthly Income' }]
       };
-      // --- End Chart Data Population ---
-
-      // --- Income Comparison Logic ---
       console.log('Entering Income Comparison Logic. Current fetchedIncomes.length:', fetchedIncomes.length);
 
       if (fetchedIncomes.length >= 2) {
@@ -112,7 +98,7 @@ ngOnInit(): void {
         this.latestMonthIncome = fetchedIncomes[fetchedIncomes.length - 1];
         this.secondLatestMonthIncome = fetchedIncomes[fetchedIncomes.length - 2];
 
-        // ... (rest of your comparison logic to define latestAmount, secondLatestAmount, latestMonthName, secondLatestMonthName) ...
+        
         const latestAmount = this.latestMonthIncome.Amount;
         const secondLatestAmount = this.secondLatestMonthIncome.Amount;
         const latestMonthName = this.latestMonthIncome.Month.toDate().toLocaleString('default', { month: 'long', year: 'numeric' });
