@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Budget, BudgetService } from '../budget.service';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { Transaction, TransactionService } from '../transaction.service';
 
 
 @Component({
@@ -18,6 +19,11 @@ export class BudgetViewComponent {
   userBudget: Budget | null = null;
   isLoading: boolean = false;
   private budgetSubscription: Subscription | undefined;
+
+  transactions: Transaction[] = [];
+
+  private transactionService = inject(TransactionService);
+
 
 
   ngOnInit(): void {
@@ -44,6 +50,10 @@ export class BudgetViewComponent {
       },
 
     });
+
+    this.transactionService.getTransactionsId(staticUserId).subscribe((fetchedTransactions: Transaction[]) => {
+      this.transactions = fetchedTransactions;
+    })
   }
 
     ngOnDestroy(): void {
