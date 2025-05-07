@@ -38,5 +38,6 @@ export const routes: Routes = [
         component: TransactionComponent,
         title: 'Transactions',
     },
+
 ];
 
