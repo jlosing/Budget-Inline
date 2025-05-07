@@ -42,9 +42,6 @@ export class IncomeTrackingComponent implements OnInit {
     return this.numericPercentageChange === Number.POSITIVE_INFINITY;
   }
 
-  // In your IncomeTrackingComponent.ts
-
-// In your IncomeTrackingComponent.ts
 
 trendDisplayParts: {
     prefix?: string;                 // e.g., "Income for June 2025 is "
@@ -56,11 +53,6 @@ trendDisplayParts: {
 numericPercentageChange: number | null = null; // For the separate "Percentage Change:" line
 statusMessage: string = 'Insufficient data to determine trend.'; // General status/fallback
 
-// ... (other properties like barChartData, etc.)
-
-// In IncomeTrackingComponent.ts
-
-// In your IncomeTrackingComponent.ts
 public getFormattedDateForIncome(income: Income | null): string {
   if (income && income.Month && typeof income.Month.toDate === 'function') {
     try {
