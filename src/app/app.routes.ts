@@ -6,6 +6,9 @@ import { IncomeTrackingComponent } from './income-tracking/income-tracking.compo
 import { ViewFeedbackFormComponent } from './view-feedback-form/view-feedback-form.component';
 import { BudgetViewComponent } from './budget-view/budget-view.component';
 import { TransactionComponent } from './transaction/transaction.component';
+import { RegisterComponent } from './register/register.component';
+import { LoginComponent } from './login/login.component';
+
 
 export const routes: Routes = [
     { 
@@ -39,5 +42,14 @@ export const routes: Routes = [
         title: 'Transactions',
     },
 
+        path: 'register',
+        component: RegisterComponent,
+        title: 'Register',
+    },
+    {
+        path: 'login',
+        component: LoginComponent,
+        title: 'Login',
+    },
 ];
 

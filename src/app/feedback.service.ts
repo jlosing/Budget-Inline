@@ -32,11 +32,14 @@ export class FeedbackService {
   updateFeedback(feedback: Feedback) {
     const feedbackRef = doc(this.firestore, `feedback/${feedback.id}`);
     updateDoc(feedbackRef,{...feedback});
+    window.alert("Comments Saved");
   }
 
   deleteFeedback(feedback: Feedback) {
-    const feedbackRef = doc(this.firestore, `feedback/${feedback.id}`);
-    deleteDoc(feedbackRef);
+    if (confirm("Are you sure you want to permanently delete this feedback?")) {
+      const feedbackRef = doc(this.firestore, `feedback/${feedback.id}`);
+      deleteDoc(feedbackRef);
+    }
   }
 
 }
