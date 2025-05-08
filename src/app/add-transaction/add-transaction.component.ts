@@ -4,9 +4,6 @@ import { FormsModule } from '@angular/forms';
 // Assuming Transaction interface is defined in or exported from transaction.service
 import { Transaction, TransactionService } from '../transaction.service';
 
-// This UID will be used for all transactions created through this form.
-// In a real app, you'd get this from your authentication service for the logged-in user.
-const staticUserId = "one";
 
 @Component({
   selector: 'app-add-transaction',
@@ -19,21 +16,29 @@ const staticUserId = "one";
   styleUrls: ['./add-transaction.component.css']
 })
 export class AddTransactionComponent implements OnInit {
-  @Input() inputCategory?: string; // Input to pre-fill the category
-  @Output() transactionAdded = new EventEmitter<void>(); // Event emitter for when a transaction is added
-  @Output() closeModal = new EventEmitter<void>(); // Event emitter to request modal close
+  @Input() inputCategory?: string; 
+  @Input() inputId?: string | undefined;
+  @Output() transactionAdded = new EventEmitter<void>();
+  @Output() closeModal = new EventEmitter<void>(); 
 
   transactionService = inject(TransactionService);
 
   transaction: Transaction = {
-    uid: staticUserId,
+    uid: '',
     name: '',
     category: '', 
     amount: 0,
   };
 
   ngOnInit(): void {
-    this.resetForm(); // Initialize form, potentially with inputCategory
+    if (this.inputId) {
+      this.transaction.uid = this.inputId;
+    }
+    else {
+      console.log("error: no id")
+      this.requestClose();
+    }
+    this.resetForm(); 
   }
 
   addTransaction(): void {
@@ -47,8 +52,9 @@ export class AddTransactionComponent implements OnInit {
     }
 
     const transactionToAdd: Transaction = { ...this.transaction };
-
+    console.log("add called");
     this.transactionService.addTransaction(transactionToAdd);
+    this.requestClose();
   }
 
   /**
@@ -56,12 +62,17 @@ export class AddTransactionComponent implements OnInit {
    * it pre-fills the category field.
    */
   resetForm(): void {
+    if (this.inputId) {
+      this.transaction.uid = this.inputId;
+    
     this.transaction = {
-      uid: staticUserId,
+      uid: this.inputId,
       name: '',
       category: this.inputCategory || '', // Use inputCategory if available
       amount: 0
-    };
+    }; 
+    }
+    else {this.requestClose()}
   }
 
   /**

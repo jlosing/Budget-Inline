@@ -6,6 +6,8 @@ import { Firestore,
   query, 
   where } from '@angular/fire/firestore';
 import { map, Observable } from 'rxjs';
+import {user, UserService } from './user.service';
+
 
 export interface Budget {
   budgetId?: string,
@@ -20,6 +22,11 @@ export interface Budget {
 })
 export class BudgetService {
   private firestore = inject(Firestore);
+
+
+
+  
+
 
   getUserBudget(uid: string): Observable<Budget | null> {
     const budgetRef = collection(this.firestore, 'budget');
@@ -40,3 +47,4 @@ export class BudgetService {
     );
   }
 }
+

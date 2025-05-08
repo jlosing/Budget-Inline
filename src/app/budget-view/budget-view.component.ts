@@ -1,22 +1,16 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common'; // For @if, @for, async pipe etc.
-import { Subscription, of } from 'rxjs'; // Added 'of' for default observable
-import { switchMap } from 'rxjs/operators'; // For chaining observables
-
-// Import pipes if they are standalone and used in the template
+import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { KeyValuePipe } from '@angular/common';
 import { CurrencyPipe } from '@angular/common';
-
-// Import the AddTransactionComponent if it's standalone and used in the template
-import { AddTransactionComponent } from '../add-transaction/add-transaction.component'; // Adjust path
-
-import { Budget, BudgetService } from '../budget.service'; // Adjust path
-import { Transaction, TransactionService } from '../transaction.service'; // Adjust path
-const staticUserId = "one"; // Static user ID for this component
+import { AddTransactionComponent } from '../add-transaction/add-transaction.component';
+import { Budget, BudgetService } from '../budget.service';
+import { Transaction, TransactionService } from '../transaction.service';
+import { UserService } from '../user.service';
 
 @Component({
   selector: 'app-budget-view',
-  standalone: true, 
+  standalone: true,
   imports: [
     CommonModule,
     KeyValuePipe,
@@ -29,6 +23,7 @@ const staticUserId = "one"; // Static user ID for this component
 export class BudgetViewComponent implements OnInit, OnDestroy {
   private budgetService = inject(BudgetService);
   private transactionService = inject(TransactionService);
+  private userService = inject(UserService);
 
   userBudget: Budget | null = null;
   transactions: Transaction[] = [];
@@ -37,86 +32,105 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
 
   private budgetSubscription: Subscription | undefined;
   private transactionsSubscription: Subscription | undefined;
+  private userSubscription: Subscription | undefined;
 
-  // Properties for "Add Transaction" modal
   showAddTransactionModal: boolean = false;
-  // **** MODIFIED TYPE HERE ****
-  selectedCategoryForNewTransaction: string | undefined = undefined; // Changed from string | null
+  selectedCategoryForNewTransaction: string | undefined = undefined;
+
+  userId: string | null = null;
 
   ngOnInit(): void {
-    this.loadBudget();
-    this.loadTransactions();
+    this.userSubscription = this.userService.user$.subscribe(user => {
+      if (user) {
+        this.userId = user.uid;
+        console.log('Authenticated User ID obtained:', this.userId);
+        this.loadBudget();
+        this.loadTransactions();
+      } else {
+        this.userId = null;
+        console.log('No user is currently logged in.');
+        this.userBudget = null;
+        this.transactions = [];
+        this.isLoadingBudget = false;
+        this.isLoadingTransactions = false;
+      }
+    });
   }
 
   loadBudget(): void {
-    this.isLoadingBudget = true;
-    this.userBudget = null; // Reset before fetching
+    if (!this.userId) {
+      console.log('No user ID available, cannot load budget.');
+      this.userBudget = null;
+      this.isLoadingBudget = false;
+      return;
+    }
 
-    console.log(`Fetching budget for static user ID: ${staticUserId}`);
-    this.budgetSubscription = this.budgetService.getUserBudget(staticUserId).subscribe({
+    this.isLoadingBudget = true;
+    this.userBudget = null;
+
+    console.log(`Fetching budget for user ID: ${this.userId}`);
+    this.budgetSubscription = this.budgetService.getUserBudget(this.userId).subscribe({
       next: (budget) => {
         this.userBudget = budget;
         this.isLoadingBudget = false;
-        console.log(budget ? `Budget fetched: ${budget.name}` : `No budget found for UID "${staticUserId}".`);
+        console.log(budget ? `Budget fetched: ${budget.name}` : `No budget found for UID "${this.userId}".`);
       },
       error: (err) => {
-        console.error(`Error fetching budget for UID "${staticUserId}":`, err);
+        console.error(`Error fetching budget for UID "${this.userId}":`, err);
         this.isLoadingBudget = false;
       }
     });
   }
 
-  loadTransactions(): void {
-    this.isLoadingTransactions = true;
-    this.transactions = []; // Reset before fetching
 
-    console.log(`Fetching transactions for static user ID: ${staticUserId}`);
-    this.transactionsSubscription = this.transactionService.getTransactionsId(staticUserId).subscribe({
+  loadTransactions(): void {
+     if (!this.userId) {
+      console.log('No user ID available, cannot load transactions.');
+      this.transactions = [];
+      this.isLoadingTransactions = false;
+      return;
+    }
+
+    this.isLoadingTransactions = true;
+    this.transactions = [];
+
+    console.log(`Fetching transactions for user ID: ${this.userId}`);
+    this.transactionsSubscription = this.transactionService.getTransactionsId(this.userId).subscribe({
       next: (fetchedTransactions: Transaction[]) => {
         this.transactions = fetchedTransactions;
         this.isLoadingTransactions = false;
         console.log(`${fetchedTransactions.length} transactions fetched.`);
       },
       error: (err) => {
-        console.error(`Error fetching transactions for UID "${staticUserId}":`, err);
+        console.error(`Error fetching transactions for UID "${this.userId}":`, err);
         this.isLoadingTransactions = false;
       }
     });
   }
 
-  /**
-   * Filters transactions for a specific category.
-   */
   getTransactionsForCategory(categoryKey: string): Transaction[] {
     return this.transactions.filter(t => t.category === categoryKey);
   }
 
-  /**
-   * Opens the modal to add a new transaction, pre-filling the category.
-   */
   openAddTransactionModal(category: string): void {
-    this.selectedCategoryForNewTransaction = category; // Assign string
+    this.selectedCategoryForNewTransaction = category;
     this.showAddTransactionModal = true;
     console.log(`Opening add transaction modal for category: ${category}`);
+    // Assuming AddTransactionComponent has an input like @Input() userId: string | undefined;
+    // You would pass it here, likely when creating or interacting with the modal instance
+    // Example (replace with your actual modal implementation logic):
+    // this.addTransactionComponentRef.userId = this.userId ?? undefined;
   }
 
-  /**
-   * Closes the add transaction modal.
-   */
   closeAddTransactionModal(): void {
     this.showAddTransactionModal = false;
-    // **** MODIFIED RESET VALUE HERE ****
-    this.selectedCategoryForNewTransaction = undefined; // Reset to undefined
+    this.selectedCategoryForNewTransaction = undefined;
   }
 
-  /**
-   * Handles the event emitted when a transaction is successfully added.
-   * Closes the modal and reloads the transactions.
-   */
   handleTransactionAdded(): void {
     console.log('Transaction added, closing modal and reloading transactions.');
     this.closeAddTransactionModal();
-    this.loadTransactions(); // Refresh the transaction list
+    this.loadTransactions();
   }
 
   ngOnDestroy(): void {
@@ -125,6 +139,9 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
     }
     if (this.transactionsSubscription) {
       this.transactionsSubscription.unsubscribe();
+    }
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
     }
   }
 }

@@ -25,7 +25,7 @@ export class LoginComponent {
     this.userService.login(rawForm.email, rawForm.password)
     .subscribe({
       next: () => {
-      this.router.navigateByUrl('/income');
+      this.router.navigateByUrl('/');
       },
       error: (err) => {
         this.errorMessage = err.code;
