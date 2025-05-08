@@ -10,7 +10,8 @@ import {
   where,
   orderBy,
   getDocs,
-  writeBatch
+  writeBatch,
+  deleteDoc
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 
@@ -80,5 +81,10 @@ export class TransactionService {
     });
 
     return batch.commit();
+  }
+
+  deleteTransaction(id: string) {
+    const transactionDocRef = doc(this.firestore, `transactions/${id}`);
+    deleteDoc(transactionDocRef);
   }
 }
