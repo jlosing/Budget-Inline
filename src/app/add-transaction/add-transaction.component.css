@@ -1,0 +1,6 @@
+.bg_primary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: navy
+}
