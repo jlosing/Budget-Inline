@@ -1,41 +1,52 @@
-<div>
-  <h3>Add New Transaction</h3>
-  <form (ngSubmit)="addTransaction()">
-    <div>
-      <label for="transactionName">Name:</label>
-      <input
-        type="text"
-        id="transactionName"
-        name="transactionName"
-        [(ngModel)]="transaction.name"
-        required
-      />
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h3 class="mb-0">Add New Transaction</h3>
     </div>
+    <div class="card-body">
+      <form (ngSubmit)="addTransaction()">
+        <div class="mb-3">
+          <label for="transactionName" class="form-label">Name</label>
+          <input
+            type="text"
+            id="transactionName"
+            name="transactionName"
+            class="form-control"
+            [(ngModel)]="transaction.name"
+            required
+          />
+        </div>
 
-    <div>
-      <label for="transactionCategory">Category:</label>
-      <input
-        disabled
-        type="text"
-        id="transactionCategory"
-        name="transactionCategory"
-        [(ngModel)]="transaction.category"
-      />
+        <div class="mb-3">
+          <label for="transactionCategory" class="form-label">Category</label>
+          <input
+            type="text"
+            id="transactionCategory"
+            name="transactionCategory"
+            class="form-control"
+            [(ngModel)]="transaction.category"
+            disabled
+          />
+        </div>
+
+        <div class="mb-3">
+          <label for="transactionAmount" class="form-label">Amount</label>
+          <input
+            type="number"
+            id="transactionAmount"
+            name="transactionAmount"
+            class="form-control"
+            [(ngModel)]="transaction.amount"
+            required
+            min="0.01"
+            step="0.01"
+          />
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-primary">Add Transaction</button>
+        </div>
+      </form>
     </div>
-
-    <div>
-      <label for="transactionAmount">Amount:</label>
-      <input
-        type="number"
-        id="transactionAmount"
-        name="transactionAmount"
-        [(ngModel)]="transaction.amount"
-        required
-        min="0.01"
-        step="0.01"
-      />
-    </div>
-
-    <button type="submit">Add Transaction</button>
-  </form>
+  </div>
 </div>

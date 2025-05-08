@@ -6,6 +6,7 @@ import { NavbarComponent } from './navbar/navbar.component';
 import { AddFinanceFormComponent } from './add-finance-form/add-finance-form.component';
 import { IncomeTrackingComponent } from './income-tracking/income-tracking.component';
 
+
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, AddFinanceFormComponent, RouterLink, NavbarComponent, IncomeTrackingComponent],

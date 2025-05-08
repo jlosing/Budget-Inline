@@ -1,1 +1,72 @@
-<p>debt-tracker works!</p>
+<div class="container mt-4">
+    <h2 class="mb-4">Debt Tracker</h2>
+  
+    <!-- Summary Section -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Total Debt</h5>
+        <p class="card-text fs-4">{{ totalDebt | currency }}</p>
+      </div>
+    </div>
+  
+    <!-- Add Debt Form -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Add New Debt</h5>
+        <form #debtForm="ngForm" (ngSubmit)="addDebt()">
+            <div class="mb-3">
+              <label for="debtName" class="form-label">Debt Name</label>
+              <input
+                type="text"
+                id="debtName"
+                class="form-control"
+                [(ngModel)]="newDebt.name"
+                name="debtName"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="debtAmount" class="form-label">Amount</label>
+              <input
+                type="number"
+                id="debtAmount"
+                class="form-control"
+                [(ngModel)]="newDebt.amount"
+                name="debtAmount"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary" [disabled]="debtForm.invalid">
+              Add Debt
+            </button>
+          </form>
+      </div>
+    </div>
+  
+    <!-- Debt List -->
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Debt List</h5>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let debt of debts; let i = index">
+              <td>{{ debt.name }}</td>
+              <td>{{ debt.amount | currency }}</td>
+              <td>
+                <button class="btn btn-danger btn-sm" (click)="removeDebt(i)">
+                  Remove
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>

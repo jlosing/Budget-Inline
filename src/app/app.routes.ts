@@ -8,6 +8,7 @@ import { BudgetViewComponent } from './budget-view/budget-view.component';
 import { TransactionComponent } from './transaction/transaction.component';
 import { RegisterComponent } from './register/register.component';
 import { LoginComponent } from './login/login.component';
+import { DebtTrackerComponent } from './debt-tracker/debt-tracker.component';
 
 
 export const routes: Routes = [
@@ -20,6 +21,11 @@ export const routes: Routes = [
         path: 'add',
         component: AddFinanceFormComponent,
         title: 'Add Finance',
+    },
+    {
+        path: 'debt-tracker',
+        component: DebtTrackerComponent,
+        title: 'Debt Tracker',
     },
     {
         path: 'feedback',
