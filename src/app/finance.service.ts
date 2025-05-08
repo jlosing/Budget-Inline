@@ -6,6 +6,7 @@ export interface Finance {
   id: string,
   user_id: string,
   name: string,
+  amount: number,
   source?: string,
   description?: string,
   isIncome: boolean, //For debt set to false

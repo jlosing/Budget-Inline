@@ -17,6 +17,7 @@ export class AddFinanceFormComponent implements OnInit {
     id: '',
     user_id: '',
     name: '',
+    amount: 0,
     source: '',
     description: '',
     isIncome: true, //For debt set to false
@@ -50,6 +51,7 @@ export class AddFinanceFormComponent implements OnInit {
       id: '',
       user_id: '',
       name: '',
+      amount: 0,
       source: '',
       description: '',
       isIncome: true, //For debt set to false

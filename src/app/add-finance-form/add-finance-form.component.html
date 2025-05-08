@@ -3,13 +3,16 @@
     <hr>
     <div>
         <p class="card-text text-muted">Name:
-          <input type="text" name="firstName" class="form-control inputBox" [(ngModel)]="finance.name" #financeFName>
+          <input type="text" name="name" class="form-control inputBox" [(ngModel)]="finance.name" #financeFName>
+        </p>
+        <p class="card-text text-muted">Amount ($):
+          <input type="text" name="dollaramount" class="form-control inputBox" [(ngModel)]="finance.amount" #financeLName>
         </p>
         <p class="card-text text-muted">Source:
-          <input type="text" name="lastName" class="form-control inputBox" [(ngModel)]="finance.source" #financeLName>
+          <input type="text" name="source" class="form-control inputBox" [(ngModel)]="finance.source" #financeLName>
         </p>
         <p class="card-text text-muted">Description:
-          <input type="text" name="phoneNumber" class="form-control inputBox" [(ngModel)]="finance.description" #financePhone>
+          <input type="text" name="description" class="form-control inputBox" [(ngModel)]="finance.description" #financePhone>
         </p>
         <div class="text-end">
           <!-- <button class="addButton btn btn-primary" (click)="CreateFinance()" routerLink="">Add</button> <-- CreateFinance() Isn't working correctly yet-->
