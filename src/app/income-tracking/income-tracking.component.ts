@@ -134,7 +134,8 @@ export class IncomeTrackingComponent implements OnInit, OnDestroy {
 
     this.incomeSubscription = this.incomeService.getIncomesOrdered(uid).subscribe({
       next: (fetchedIncomes: Income[]) => {
-        console.log('LOG: Fetched incomes from Firestore:', JSON.parse(JSON.stringify(fetchedIncomes)));
+        console.log('LOG: Fetched incomes from Firestore (raw):', fetchedIncomes);
+        console.log('LOG: Fetched incomes from Firestore (processed for logging):', JSON.parse(JSON.stringify(fetchedIncomes.map(inc => ({...inc, MonthDateUTC: inc.Month.toDate().toISOString(), MonthDateLocal: inc.Month.toDate().toString() })))));
 
         this.incomes = fetchedIncomes.map(income => ({
           ...income,
@@ -150,12 +151,15 @@ export class IncomeTrackingComponent implements OnInit, OnDestroy {
         if (this.incomes && this.incomes.length > 0) {
           console.log('LOG: Processing fetched incomes for UI.');
           const newLabels = this.incomes.map(i => {
-            try {
-              return i.Month.toDate().toLocaleString('default', { month: 'short', year: 'numeric' });
-            } catch (e) {
-              console.error("LOG: Error converting month to date string:", i.Month, e);
-              return "Invalid Date";
+            if (i.Month && typeof i.Month.toDate === 'function') {
+              const date = i.Month.toDate();
+              const year = date.getUTCFullYear();
+              const monthIndex = date.getUTCMonth();
+              const monthNameForLabel = new Date(Date.UTC(year, monthIndex, 1)).toLocaleString('default', { month: 'short' });
+              return `${monthNameForLabel} ${year}`;
             }
+            console.error("LOG: Invalid month object for chart label:", i.Month);
+            return "Invalid Date";
           });
           const newData = this.incomes.map(i => i.Amount);
           this.barChartData = {
@@ -220,7 +224,11 @@ export class IncomeTrackingComponent implements OnInit, OnDestroy {
   public getFormattedDateForIncome(income: Income | null): string {
     if (income && income.Month && typeof income.Month.toDate === 'function') {
       try {
-        return income.Month.toDate().toLocaleString('default', { month: 'long', year: 'numeric' });
+        const date = income.Month.toDate();
+        const year = date.getUTCFullYear();
+        const monthIndex = date.getUTCMonth();
+        const monthName = new Date(Date.UTC(year, monthIndex, 1)).toLocaleString('default', { month: 'long' });
+        return `${monthName} ${year}`;
       } catch (e) {
         console.error("LOG: Error in getFormattedDateForIncome:", e);
         return 'Invalid Date';
@@ -243,10 +251,11 @@ export class IncomeTrackingComponent implements OnInit, OnDestroy {
       console.log('LOG: Numeric selected month value for find:', numericSelectedMonthValue);
 
       const selectedOption = this.monthOptions.find(option => option.value === numericSelectedMonthValue);
-      console.log('LOG: Found option in monthOptions:', selectedOption);
+      console.log('LOG: Found option in monthOptions:', selectedOption ? { ...selectedOption, firstDayUTCTimestamp: selectedOption.firstDayUTCTimestamp.toDate().toISOString() } : 'null');
       if (selectedOption) {
         this.newIncomeDate = selectedOption.firstDayUTCTimestamp;
-        console.log('LOG: newIncomeDate has been SET to:', this.newIncomeDate);
+        console.log('LOG: newIncomeDate has been SET to (UTC):', this.newIncomeDate.toDate().toISOString());
+        console.log('LOG: newIncomeDate (local interpretation for reference):', this.newIncomeDate.toDate().toString());
       } else {
         this.newIncomeDate = null;
         console.log('LOG: No matching option found in monthOptions (after converting to number), newIncomeDate set to NULL.');
@@ -257,8 +266,12 @@ export class IncomeTrackingComponent implements OnInit, OnDestroy {
     }
   }
 
-  async saveNewIncome(): Promise<void> {
-    console.log('LOG: saveNewIncome called. Current newIncomeAmount:', this.newIncomeAmount, 'Current newIncomeDate:', this.newIncomeDate, 'UserID:', this.userId);
+ async saveNewIncome(): Promise<void> {
+    console.log('LOG: saveNewIncome called. Current newIncomeAmount:', this.newIncomeAmount, 'Current newIncomeDate (is a Timestamp object):', this.newIncomeDate, 'UserID:', this.userId);
+    if (this.newIncomeDate) {
+        console.log('LOG: saveNewIncome - newIncomeDate (UTC):', this.newIncomeDate.toDate().toISOString());
+    }
+
     if (!this.userId) {
       alert("User not logged in. Cannot save income.");
       console.log('LOG: saveNewIncome - User not logged in.');
@@ -281,7 +294,9 @@ export class IncomeTrackingComponent implements OnInit, OnDestroy {
       Month: this.newIncomeDate
     };
 
-    console.log('LOG: Attempting to save new income:', JSON.parse(JSON.stringify(newIncomeEntry)));
+
+    console.log('LOG: Attempting to save new income (raw object):', newIncomeEntry);
+    console.log('LOG: Attempting to save new income (stringified for month detail):', JSON.parse(JSON.stringify(newIncomeEntry)));
 
     try {
       await this.incomeService.addIncome(newIncomeEntry);
