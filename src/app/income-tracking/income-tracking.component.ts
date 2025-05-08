@@ -1,18 +1,25 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartData, ChartOptions, ChartType } from 'chart.js';
-import { Income } from '../income-tracking.service';
-import { IncomeTrackingService } from '../income-tracking.service';
+import { Income, IncomeTrackingService } from '../income-tracking.service';
 import { UserService } from '../user.service';
 import { Subscription } from 'rxjs';
+import { Timestamp } from '@angular/fire/firestore';
+
+interface MonthOption {
+  value: number;
+  name: string;
+  firstDayUTCTimestamp: Timestamp;
+}
 
 @Component({
   selector: 'app-income-tracking',
   standalone: true,
   templateUrl: './income-tracking.component.html',
   styleUrl: './income-tracking.component.css',
-  imports: [CommonModule, NgChartsModule],
+  imports: [CommonModule, NgChartsModule, FormsModule],
 })
 export class IncomeTrackingComponent implements OnInit, OnDestroy {
   incomes: Income[] = [];
@@ -21,70 +28,61 @@ export class IncomeTrackingComponent implements OnInit, OnDestroy {
     responsive: true,
   };
 
-  public barChartLabels: string[] = [];
-
   public barChartType: ChartType = 'bar';
   public barChartLegend = true;
 
   public barChartData: ChartData<'bar'> = {
-    labels: this.barChartLabels,
+    labels: [],
     datasets: [
-      { data: [], label: 'Monthly Income' }
+      { data: [], label: 'Monthly Income', backgroundColor: 'rgba(75, 192, 192, 0.5)', borderColor: 'rgb(75, 192, 192)' }
     ]
   };
 
   private incomeService = inject(IncomeTrackingService);
+  private userService = inject(UserService);
 
   latestMonthIncome: Income | null = null;
   secondLatestMonthIncome: Income | null = null;
-  incomeChangePercentage: number | null = null;
-  incomeTrendMessage: string = 'Insufficient data to determine trend.';
-
-  public get isNumericPercentageChangeInfinite(): boolean {
-    return this.numericPercentageChange === Number.POSITIVE_INFINITY;
-  }
-
+  numericPercentageChange: number | null = null;
   trendDisplayParts: {
     prefix?: string;
     trendText?: string;
     suffix?: string;
     status?: 'positive' | 'negative' | 'neutral' | 'significant_increase_from_zero' | 'no_change_from_zero';
   } | null = null;
-
-  numericPercentageChange: number | null = null;
   statusMessage: string = 'Insufficient data to determine trend.';
 
-  public getFormattedDateForIncome(income: Income | null): string {
-    if (income && income.Month && typeof income.Month.toDate === 'function') {
-      try {
-        return income.Month.toDate().toLocaleString('default', { month: 'long', year: 'numeric' });
-      } catch (e) {
-        console.error("Error formatting date:", e, income.Month);
-        return 'Invalid Date';
-      }
-    }
-    return '';
-  }
-
-  private userService = inject(UserService);
   private userSubscription: Subscription | undefined;
   private incomeSubscription: Subscription | undefined;
-
   userId: string | null = null;
 
+  displayAddIncome = false;
+  newIncomeAmount: number | null = null;
+  newIncomeDate: Timestamp | null = null;
+
+  monthOptions: MonthOption[] = [];
+  selectedMonthValueForIncome: number | null = null;
+
+  public get isNumericPercentageChangeInfinite(): boolean {
+    return this.numericPercentageChange === Number.POSITIVE_INFINITY;
+  }
+
+  constructor() {}
 
   ngOnInit(): void {
+    this.populateMonthOptions();
+    console.log('LOG: Month options populated in ngOnInit:', this.monthOptions);
     this.userSubscription = this.userService.user$.subscribe({
       next: (user) => {
         if (user) {
           this.userId = user.uid;
-          console.log('User logged in. User ID:', this.userId);
+          console.log('LOG: ngOnInit - User signed in. UserID:', this.userId);
           this.getIncome(this.userId);
         } else {
+          console.log('LOG: ngOnInit - User signed out.');
           this.userId = null;
-          console.log('No user is currently logged in.');
           this.incomes = [];
-          this.barChartData = { labels: [], datasets: [{ data: [], label: 'Monthly Income' }] };
+          this.barChartData = { labels: [], datasets: [{ data: [], label: 'Monthly Income', backgroundColor: 'rgba(75, 192, 192, 0.5)', borderColor: 'rgb(75, 192, 192)' }] };
           this.latestMonthIncome = null;
           this.secondLatestMonthIncome = null;
           this.numericPercentageChange = null;
@@ -93,18 +91,33 @@ export class IncomeTrackingComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        console.error('Error observing user authentication state:', err);
+        console.error('LOG: Error observing user authentication state:', err);
         this.userId = null;
         this.statusMessage = 'Error loading user data. Please try again.';
       }
     });
   }
 
+  populateMonthOptions(): void {
+    const currentYear = new Date().getFullYear();
+    const options: MonthOption[] = [];
+    for (let i = 0; i < 12; i++) {
+      const monthName = new Date(currentYear, i, 1).toLocaleString('default', { month: 'long' });
+      const jsDateUTC = new Date(Date.UTC(currentYear, i, 1, 0, 0, 0, 0));
+      const firestoreTimestamp = Timestamp.fromDate(jsDateUTC);
+      options.push({
+        value: i + 1,
+        name: monthName,
+        firstDayUTCTimestamp: firestoreTimestamp
+      });
+    }
+    this.monthOptions = options;
+  }
+
   getIncome(uid: string): void {
     if (!uid) {
-      console.log('getIncome called without a valid UID.');
       this.incomes = [];
-      this.barChartData = { labels: [], datasets: [{ data: [], label: 'Monthly Income' }] };
+      this.barChartData = { labels: [], datasets: [{ data: [], label: 'Monthly Income', backgroundColor: 'rgba(75, 192, 192, 0.5)', borderColor: 'rgb(75, 192, 192)' }] };
       this.latestMonthIncome = null;
       this.secondLatestMonthIncome = null;
       this.numericPercentageChange = null;
@@ -113,14 +126,20 @@ export class IncomeTrackingComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log(`Attempting to fetch income for UID: ${uid}`);
+    console.log(`LOG: getIncome called for UID: ${uid}`);
+
+    if (this.incomeSubscription) {
+      this.incomeSubscription.unsubscribe();
+    }
 
     this.incomeSubscription = this.incomeService.getIncomesOrdered(uid).subscribe({
       next: (fetchedIncomes: Income[]) => {
-        console.log('Income data received. Count:', fetchedIncomes.length);
-        console.log('Fetched Incomes (Raw):', JSON.stringify(fetchedIncomes));
+        console.log('LOG: Fetched incomes from Firestore:', JSON.parse(JSON.stringify(fetchedIncomes)));
 
-        this.incomes = fetchedIncomes;
+        this.incomes = fetchedIncomes.map(income => ({
+          ...income,
+          Month: income.Month instanceof Timestamp ? income.Month : Timestamp.fromDate(new Date((income.Month as any).seconds * 1000))
+        }));
 
         this.latestMonthIncome = null;
         this.secondLatestMonthIncome = null;
@@ -128,24 +147,29 @@ export class IncomeTrackingComponent implements OnInit, OnDestroy {
         this.trendDisplayParts = null;
         this.statusMessage = 'Insufficient data to determine trend.';
 
-        if (fetchedIncomes && fetchedIncomes.length > 0) {
-          const newLabels = fetchedIncomes.map(i => i.Month.toDate().toLocaleString('default', { month: 'short', year: 'numeric' }));
-          const newData = fetchedIncomes.map(i => i.Amount);
+        if (this.incomes && this.incomes.length > 0) {
+          console.log('LOG: Processing fetched incomes for UI.');
+          const newLabels = this.incomes.map(i => {
+            try {
+              return i.Month.toDate().toLocaleString('default', { month: 'short', year: 'numeric' });
+            } catch (e) {
+              console.error("LOG: Error converting month to date string:", i.Month, e);
+              return "Invalid Date";
+            }
+          });
+          const newData = this.incomes.map(i => i.Amount);
           this.barChartData = {
             labels: newLabels,
-            datasets: [{ data: newData, label: this.barChartData.datasets[0]?.label || 'Monthly Income' }]
+            datasets: [{ data: newData, label: this.barChartData.datasets[0]?.label || 'Monthly Income', backgroundColor: 'rgba(75, 192, 192, 0.5)', borderColor: 'rgb(75, 192, 192)' }]
           };
-          console.log('Chart data updated.');
 
-          if (fetchedIncomes.length >= 2) {
-            console.log('Processing trend for two or more months.');
-            this.latestMonthIncome = fetchedIncomes[fetchedIncomes.length - 1];
-            this.secondLatestMonthIncome = fetchedIncomes[fetchedIncomes.length - 2];
-
+          if (this.incomes.length >= 2) {
+            this.latestMonthIncome = this.incomes[this.incomes.length - 1];
+            this.secondLatestMonthIncome = this.incomes[this.incomes.length - 2];
             const latestAmount = this.latestMonthIncome.Amount;
             const secondLatestAmount = this.secondLatestMonthIncome.Amount;
-            const latestMonthName = this.latestMonthIncome.Month.toDate().toLocaleString('default', { month: 'long', year: 'numeric' });
-            const secondLatestMonthName = this.secondLatestMonthIncome.Month.toDate().toLocaleString('default', { month: 'long', year: 'numeric' });
+            const latestMonthName = this.getFormattedDateForIncome(this.latestMonthIncome);
+            const secondLatestMonthName = this.getFormattedDateForIncome(this.secondLatestMonthIncome);
 
             this.trendDisplayParts = {
               prefix: `Income for ${latestMonthName} is `,
@@ -155,7 +179,6 @@ export class IncomeTrackingComponent implements OnInit, OnDestroy {
             if (secondLatestAmount !== 0) {
               const change = ((latestAmount - secondLatestAmount) / secondLatestAmount) * 100;
               this.numericPercentageChange = change;
-
               if (change > 0) {
                 this.trendDisplayParts.trendText = `up by ${change.toFixed(2)}%`;
                 this.trendDisplayParts.status = 'positive';
@@ -175,40 +198,123 @@ export class IncomeTrackingComponent implements OnInit, OnDestroy {
               this.trendDisplayParts.trendText = `still $0`;
               this.trendDisplayParts.status = 'no_change_from_zero';
             }
-
             this.statusMessage = '';
-
-          } else if (fetchedIncomes.length === 1) {
-            this.latestMonthIncome = fetchedIncomes[0];
-            const latestMonthName = this.latestMonthIncome.Month.toDate().toLocaleString('default', { month: 'long', year: 'numeric' });
+          } else if (this.incomes.length === 1) {
+            this.latestMonthIncome = this.incomes[0];
+            const latestMonthName = this.getFormattedDateForIncome(this.latestMonthIncome);
             this.statusMessage = `Only one month of data available (${latestMonthName}: ${this.latestMonthIncome.Amount.toLocaleString(undefined, {style: 'currency', currency: 'USD'})}). More data needed for comparison.`;
-            console.log('Only one month of data.');
           }
         } else {
-          console.log('No income data found for this user.');
+          console.log('LOG: No incomes found or array is empty after fetch.');
           this.statusMessage = 'No income data found for your account.';
-          this.barChartData = { labels: [], datasets: [{ data: [], label: 'Monthly Income' }] };
+          this.barChartData = { labels: [], datasets: [{ data: [], label: 'Monthly Income', backgroundColor: 'rgba(75, 192, 192, 0.5)', borderColor: 'rgb(75, 192, 192)' }] };
         }
       },
       error: (err) => {
-        console.error(`Error fetching income data for UID "${uid}":`, err);
+        console.error(`LOG: Error fetching income data for UID "${uid}":`, err);
         this.statusMessage = 'Error loading income data. Please try again.';
-        this.incomes = [];
-        this.barChartData = { labels: [], datasets: [{ data: [], label: 'Monthly Income' }] };
-        this.latestMonthIncome = null;
-        this.secondLatestMonthIncome = null;
-        this.numericPercentageChange = null;
-        this.trendDisplayParts = null;
       }
     });
   }
 
+  public getFormattedDateForIncome(income: Income | null): string {
+    if (income && income.Month && typeof income.Month.toDate === 'function') {
+      try {
+        return income.Month.toDate().toLocaleString('default', { month: 'long', year: 'numeric' });
+      } catch (e) {
+        console.error("LOG: Error in getFormattedDateForIncome:", e);
+        return 'Invalid Date';
+      }
+    }
+    return '';
+  }
+
+  onAddIncomeClick(): void {
+    this.displayAddIncome = true;
+    this.newIncomeAmount = null;
+    this.selectedMonthValueForIncome = null;
+    this.newIncomeDate = null;
+  }
+
+  onNewIncomeMonthSelected(): void {
+    console.log('LOG: Month selection changed. Value from ngModel (selectedMonthValueForIncome):', this.selectedMonthValueForIncome, 'Type:', typeof this.selectedMonthValueForIncome);
+    if (this.selectedMonthValueForIncome !== null) {
+      const numericSelectedMonthValue = Number(this.selectedMonthValueForIncome);
+      console.log('LOG: Numeric selected month value for find:', numericSelectedMonthValue);
+
+      const selectedOption = this.monthOptions.find(option => option.value === numericSelectedMonthValue);
+      console.log('LOG: Found option in monthOptions:', selectedOption);
+      if (selectedOption) {
+        this.newIncomeDate = selectedOption.firstDayUTCTimestamp;
+        console.log('LOG: newIncomeDate has been SET to:', this.newIncomeDate);
+      } else {
+        this.newIncomeDate = null;
+        console.log('LOG: No matching option found in monthOptions (after converting to number), newIncomeDate set to NULL.');
+      }
+    } else {
+      this.newIncomeDate = null;
+      console.log('LOG: selectedMonthValueForIncome is null, newIncomeDate set to NULL.');
+    }
+  }
+
+  async saveNewIncome(): Promise<void> {
+    console.log('LOG: saveNewIncome called. Current newIncomeAmount:', this.newIncomeAmount, 'Current newIncomeDate:', this.newIncomeDate, 'UserID:', this.userId);
+    if (!this.userId) {
+      alert("User not logged in. Cannot save income.");
+      console.log('LOG: saveNewIncome - User not logged in.');
+      return;
+    }
+    if (this.newIncomeAmount === null || this.newIncomeAmount <= 0) {
+      alert("Please enter a valid income amount greater than zero.");
+      console.log('LOG: saveNewIncome - Invalid income amount.');
+      return;
+    }
+    if (!this.newIncomeDate) {
+      alert("Please select a month for the income.");
+      console.log('LOG: saveNewIncome - No month selected.');
+      return;
+    }
+
+    const newIncomeEntry: Omit<Income, 'id'> = {
+      uid: this.userId!,
+      Amount: this.newIncomeAmount!,
+      Month: this.newIncomeDate
+    };
+
+    console.log('LOG: Attempting to save new income:', JSON.parse(JSON.stringify(newIncomeEntry)));
+
+    try {
+      await this.incomeService.addIncome(newIncomeEntry);
+      alert("Income added successfully!");
+      console.log('LOG: Income added successfully via service.');
+      this.displayAddIncome = false;
+      this.newIncomeAmount = null;
+      this.selectedMonthValueForIncome = null;
+      this.newIncomeDate = null;
+      this.getIncome(this.userId);
+    } catch (error) {
+      console.error("LOG: Error saving new income:", error);
+      alert("Failed to save income. Please try again.");
+    }
+  }
+
+  cancelAddIncome(): void {
+    this.displayAddIncome = false;
+    this.newIncomeAmount = null;
+    this.selectedMonthValueForIncome = null;
+    this.newIncomeDate = null;
+    console.log('LOG: Add income cancelled.');
+  }
+
   ngOnDestroy(): void {
+    console.log('LOG: IncomeTrackingComponent ngOnDestroy called.');
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
+      console.log('LOG: Unsubscribed from userSubscription.');
     }
     if (this.incomeSubscription) {
       this.incomeSubscription.unsubscribe();
+      console.log('LOG: Unsubscribed from incomeSubscription.');
     }
   }
 }
