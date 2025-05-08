@@ -8,11 +8,14 @@ export interface user {
   username: string,
 }
 
+
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
   constructor() { }
+
+
 
   firebaseAuth= inject(Auth);
   user$ = user(this.firebaseAuth);

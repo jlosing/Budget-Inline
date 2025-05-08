@@ -1,12 +1,9 @@
 import { Component, inject, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-// Assuming Transaction interface is defined in or exported from transaction.service
 import { Transaction, TransactionService } from '../transaction.service';
 
-// This UID will be used for all transactions created through this form.
-// In a real app, you'd get this from your authentication service for the logged-in user.
-const staticUserId = "one";
+type TransactionFormData = Omit<Transaction, 'id' | 'date'>;
 
 @Component({
   selector: 'app-add-transaction',
@@ -19,55 +16,62 @@ const staticUserId = "one";
   styleUrls: ['./add-transaction.component.css']
 })
 export class AddTransactionComponent implements OnInit {
-  @Input() inputCategory?: string; // Input to pre-fill the category
-  @Output() transactionAdded = new EventEmitter<void>(); // Event emitter for when a transaction is added
-  @Output() closeModal = new EventEmitter<void>(); // Event emitter to request modal close
+  @Input() inputCategory?: string;
+  @Input() inputId?: string | undefined;
+  @Output() transactionAdded = new EventEmitter<void>();
+  @Output() closeModal = new EventEmitter<void>();
 
   transactionService = inject(TransactionService);
 
-  transaction: Transaction = {
-    uid: staticUserId,
+  transaction: TransactionFormData = {
+    uid: '',
     name: '',
-    category: '', 
+    category: '',
     amount: 0,
   };
 
   ngOnInit(): void {
-    this.resetForm(); // Initialize form, potentially with inputCategory
+    if (this.inputId) {
+      this.transaction.uid = this.inputId;
+    } else {
+      console.error("Error: No user ID (inputId) provided to AddTransactionComponent. Cannot add transaction.");
+      this.requestClose();
+      return;
+    }
+    this.resetForm();
   }
 
   addTransaction(): void {
-    if (!this.transaction.name || this.transaction.amount <= 0) {
-      alert('Transaction name and a positive amount are required.'); // Simple alert for now
+    if (!this.transaction.name.trim() || this.transaction.amount <= 0) {
+      alert('Transaction name and a positive amount are required.');
       return;
     }
-    if (!this.transaction.category) {
+    if (!this.transaction.category.trim()) {
       alert('Category is required.');
       return;
     }
 
-    const transactionToAdd: Transaction = { ...this.transaction };
-
-    this.transactionService.addTransaction(transactionToAdd);
+    this.transactionService.addTransaction(this.transaction)
+      .then(() => {
+        this.transactionAdded.emit();
+        this.requestClose();
+      })
+      .catch(error => {
+        console.error("Error adding transaction: ", error);
+        alert("Failed to add transaction. Please try again.");
+      });
   }
 
-  /**
-   * Resets the form fields. If an inputCategory was provided,
-   * it pre-fills the category field.
-   */
   resetForm(): void {
+    const currentUid = this.transaction.uid; // Preserve UID
     this.transaction = {
-      uid: staticUserId,
+      uid: currentUid,
       name: '',
-      category: this.inputCategory || '', // Use inputCategory if available
+      category: this.inputCategory || '',
       amount: 0
     };
   }
 
-  /**
-   * Emits an event to request the modal to be closed.
-   * This can be triggered by a "Cancel" button within the form itself.
-   */
   requestClose(): void {
     this.closeModal.emit();
   }

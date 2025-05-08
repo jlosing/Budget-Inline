@@ -3,9 +3,9 @@
 
   @if (userBudget?.budgetId) {
   <p>Budget ID: {{ userBudget?.budgetId }}</p>
-  } @if(userBudget?.name) {
+  } @if (userBudget?.name) {
   <p>Budget Name: {{ userBudget?.name }}</p>
-  } @if(userBudget?.uid) {
+  } @if (userBudget?.uid) {
   <p>User ID (owner): {{ userBudget?.uid }}</p>
   } @if (userBudget && userBudget.categories) {
   <h4>Budget Categories:</h4>
@@ -16,20 +16,66 @@
       <div class="d-flex justify-content-between align-items-center">
         <span>
           {{ categoryItem.key }}:
-          {{ categoryItem.value }}
+          {{ categoryItem.value | currency }}
         </span>
         <div>
-          <button class="btn btn-sm btn-outline-secondary me-2">
+          <button
+            class="btn btn-sm btn-outline-secondary me-2"
+            (click)="
+              openEditCategoryModal(categoryItem.key, categoryItem.value)
+            "
+          >
             Edit Category
           </button>
           <button
-            class="btn btn-sm btn-success"
+            class="btn btn-sm btn-success me-2"
             (click)="openAddTransactionModal(categoryItem.key)"
           >
             + Add Transaction
           </button>
+          <button
+            class="btn btn-sm btn-outline-danger"
+            (click)="confirmDeleteCategory(categoryItem.key)"
+          >
+            Delete
+          </button>
         </div>
       </div>
+      @if (showEditCategoryModal) {
+      <div class="modal-overlay" (click)="closeEditCategoryModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <button class="btn-close-modal" (click)="closeEditCategoryModal()">
+            X
+          </button>
+          <h5>Edit Category: {{ editingCategory?.oldName }}</h5>
+          <div class="mb-3">
+            <label for="newCategoryName" class="form-label"
+              >New Category Name:</label
+            >
+            <input
+              type="text"
+              id="newCategoryName"
+              class="form-control"
+              [(ngModel)]="newCategoryNameInput"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="newCategoryAmount" class="form-label"
+              >New Category Amount:</label
+            >
+            <input
+              type="number"
+              id="newCategoryAmount"
+              class="form-control"
+              [(ngModel)]="newCategoryAmountInput"
+            />
+          </div>
+          <button class="btn btn-primary" (click)="submitEditCategory()">
+            Save Changes
+          </button>
+        </div>
+      </div>
+      }
 
       <div class="mt-2">
         <h5>Transactions for {{ categoryItem.key }}:</h5>
@@ -43,16 +89,105 @@
             {{ transaction.amount | currency }}
           </p>
         </div>
+
         } } @else {
         <p class="text-muted">No transactions for this category yet.</p>
         }
+      </div>
+    </li>
+    } @if (!displayAddCategory) {
+    <li class="list-group-item">
+      <div class="d-flex justify-content-center align-items-center">
+        <button class="btn btn-outline-secondary" (click)="addCategoryClick()">
+          Add Category
+        </button>
+      </div>
+    </li>
+    } @else {
+    <li class="list-group-item">
+      <div class="d-flex justify-content-center align-items-center">
+        <label for="categoryName" class="form-label">Name:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="categoryName"
+          [(ngModel)]="categoryName"
+        />
+        <label for="categoryAmount" class="form-label">Amount</label>
+        <input
+          type="text"
+          class="form-control"
+          id="categoryAmount"
+          [(ngModel)]="categoryAmount"
+        />
+        <button class="btn btn-outline-primary" (click)="onClickAdd()">
+          Add
+        </button>
       </div>
     </li>
     }
   </ul>
   } @else if (userBudget && !userBudget.categories) {
   <p>This budget does not have any specific categories defined.</p>
-  } @else if (!userBudget && !isLoadingBudget) {
+  @if (!displayAddCategory) {
+  <li class="list-group-item">
+    <div class="d-flex justify-content-center align-items-center">
+      <button class="btn btn-outline-secondary" (click)="addCategoryClick()">
+        Add Category
+      </button>
+    </div>
+  </li>
+  } @else {
+  <li class="list-group-item">
+    <div class="d-flex justify-content-center align-items-center">
+      <label for="categoryName" class="form-label">Name:</label>
+      <input
+        type="text"
+        class="form-control"
+        id="categoryName"
+        [(ngModel)]="categoryName"
+      />
+      <label for="categoryAmount" class="form-label">Amount</label>
+      <input
+        type="text"
+        class="form-control"
+        id="categoryAmount"
+        [(ngModel)]="categoryAmount"
+      />
+      <button class="btn btn-outline-primary" (click)="onClickAdd()">
+        Add
+      </button>
+    </div>
+  </li>
+  } } @else if (!userBudget){ @if (!displayAddBudget) {
+  <li class="list-group-item">
+    <div class="d-flex justify-content-center align-items-center">
+      <button class="btn btn-outline-secondary" (click)="addBudgetDialogue()">
+        + New Budget
+      </button>
+    </div>
+  </li>
+  } @else {
+  <li class="list-group-item">
+    <div class="d-flex justify-content-center align-items-center">
+      <label for="categoryName" class="form-label">Name:</label>
+      <input
+        type="text"
+        class="form-control"
+        id="categoryName"
+        [(ngModel)]="newBudgetName"
+      />
+      <label for="categoryAmount" class="form-label">Amount</label>
+      <input
+        type="text"
+        class="form-control"
+        id="categoryAmount"
+        [(ngModel)]="newBudgetAmount"
+      />
+      <button class="btn btn-outline-primary" (click)="addBudget()">Add</button>
+    </div>
+  </li>
+  } } @else if (!isLoadingBudget) {
   <p>No budget found for this user, or budget is still loading.</p>
   } @if (isLoadingBudget) {
   <p>Loading budget...</p>
@@ -64,6 +199,7 @@
       </button>
       <app-add-transaction
         [inputCategory]="selectedCategoryForNewTransaction"
+        [inputId]="userId ?? undefined"
         (transactionAdded)="handleTransactionAdded()"
         (closeModal)="closeAddTransactionModal()"
       >
@@ -72,36 +208,3 @@
   </div>
   }
 </div>
-
-<style>
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000; /* Ensure it's on top */
-  }
-  .modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    min-width: 300px; /* Or your desired width */
-    max-width: 90%;
-    position: relative; /* For positioning the close button */
-  }
-  .btn-close-modal {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-  }
-</style>
