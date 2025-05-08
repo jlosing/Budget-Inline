@@ -6,6 +6,10 @@ import { AddTransactionComponent } from '../add-transaction/add-transaction.comp
 import { Budget, BudgetService } from '../budget.service';
 import { Transaction, TransactionService } from '../transaction.service';
 import { UserService } from '../user.service';
+import { Timestamp } from '@angular/fire/firestore';
+
+
+type BudgetOmitData = Omit<Budget, 'budgetId' | 'categories'>;
 
 @Component({
   selector: 'app-budget-view',
@@ -24,14 +28,16 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
 
   displayAddCategory = false;
+  displayAddBudget = false;
 
-  userBudget: Budget | null = null;
+
   transactions: Transaction[] = [];
   isLoadingBudget: boolean = false;
   isLoadingTransactions: boolean = false;
 
   categoryName: string | null = null;
   categoryAmount: number | null = null;
+
 
   private budgetSubscription: Subscription | undefined;
   private transactionsSubscription: Subscription | undefined;
@@ -41,6 +47,19 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
   selectedCategoryForNewTransaction: string | undefined = undefined;
 
   userId: string | null = null;
+
+  newBudgetName: string | null = null;
+  newBudgetAmount: number | null = null;
+  newBudgetCategories: { [categoryName: string]: number } | null = null;
+  newBudgetUid: string | null = this.userId;
+
+  userBudget: Budget | null = null;
+  
+  userAddBudget: BudgetOmitData = {
+   uid: '',
+   name: '',
+   amount: 0,
+  };
 
   showEditCategoryModal: boolean = false;
   editingCategory: { oldName: string, oldAmount: number } | null = null;
@@ -83,23 +102,22 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
   }
 
   loadTransactions(): void {
-     if (!this.userId) {
-      this.transactions = [];
-      this.isLoadingTransactions = false;
-      return;
-    }
-    this.isLoadingTransactions = true;
-    this.transactionsSubscription = this.transactionService.getTransactionsId(this.userId).subscribe({
-      next: (fetchedTransactions: Transaction[]) => {
-        this.transactions = fetchedTransactions;
-        this.isLoadingTransactions = false;
-      },
-      error: (err) => {
-        console.error(`Error fetching transactions for UID "${this.userId}":`, err);
-        this.isLoadingTransactions = false;
-      }
-    });
+  if (!this.userId) {
+    this.transactions = [];
+    this.isLoadingTransactions = false;
+    return;
   }
+  this.isLoadingTransactions = true;
+  this.transactionsSubscription = this.transactionService.getTransactionsId(this.userId).subscribe({
+    next: () => {
+      this.isLoadingTransactions = false;
+    },
+    error: (err) => {
+      console.error(`Error fetching transactions for UID "${this.userId}":`, err);
+      this.isLoadingTransactions = false;
+    }
+  });
+}
 
   getTransactionsForCategory(categoryKey: string): Transaction[] {
     return this.transactions.filter(t => t.category === categoryKey);
@@ -211,6 +229,25 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
       }
     }
   }
+
+  addBudgetDialogue() {
+    this.displayAddBudget = true;
+  }
+
+  addBudget() {
+    if (!this.newBudgetAmount|| !this.newBudgetName || !this.userId) {
+      console.log("error: missing budget information");
+      console.log("amount: " + this.newBudgetAmount + " name: " + this.newBudgetName + " id: " + this.userId)
+      return;
+  }
+  else {
+    this.userAddBudget.uid = this.userId;
+    this.userAddBudget.amount = this.newBudgetAmount;
+    this.userAddBudget.name = this.newBudgetName;
+    this.budgetService.addBudget(this.userAddBudget);
+    this.displayAddBudget = false;
+  }
+}
 
   ngOnDestroy(): void {
     if (this.budgetSubscription) {

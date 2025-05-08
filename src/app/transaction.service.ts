@@ -20,7 +20,7 @@ export interface Transaction {
   name: string;
   amount: number;
   category: string;
-  date: Timestamp;
+  date: Timestamp | Date; 
 }
 
 @Injectable({

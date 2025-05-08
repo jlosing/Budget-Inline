@@ -8,7 +8,8 @@ import {
   where,
   updateDoc,
   doc,
-  deleteField
+  deleteField,
+  addDoc
 } from '@angular/fire/firestore';
 import { map, Observable } from 'rxjs';
 
@@ -25,6 +26,7 @@ export interface Budget {
 })
 export class BudgetService {
   private firestore = inject(Firestore);
+  private budgetCollection = collection(this.firestore, 'budget');
 
   getUserBudget(uid: string): Observable<Budget | null> {
     const budgetRef = collection(this.firestore, 'budget');
@@ -71,5 +73,9 @@ export class BudgetService {
     return updateDoc(budgetDocRef, {
       [`categories.${categoryName}`]: deleteField()
     });
+  }
+
+  addBudget(newBudget: Omit<Budget, 'budgetId' | 'categories'>): Promise<any> {
+    return addDoc(this.budgetCollection, newBudget);
   }
 }
