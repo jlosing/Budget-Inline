@@ -1,35 +1,183 @@
 
+/* --- Base & Global Styling --- */
+body {
+    margin: 0;
+    /* Remove default browser margins */
+    font-family: sans-serif;
+    /* Or your preferred font */
+    box-sizing: border-box;
+    /* Recommended for easier box model calculations */
+    /* Default padding for the top navbar */
+    /* This value should match your navbar's height */
+    padding-top: 70px;
+    padding-left: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    /* No transition needed for padding-left anymore */
+    transition: padding-top 0.3s ease-in-out;
+}
+
+/* --- Navbar General Styling --- */
 .navbar {
-    height: 100vh;
-    width: 250px;
+    /* This class should be on your <nav> element within app-navbar */
+    transition: height 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    /* Softer, modern shadow */
+    background-color: #343a40;
+    /* Example: Ensure a background color is set */
+    z-index: 1030;
+    /* Bootstrap's standard z-index for fixed elements */
+    box-sizing: border-box;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.6rem;
+}
+
+.nav-link {
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.75);
+    /* Example link color for dark navbar */
+}
+
+.nav-link:hover,
+.nav-link.active,
+.nav-item.show>.nav-link {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.dropdown-menu {
+    border-radius: 6px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem 0;
+    background-color: #343a40;
+    /* Match navbar or use a dark dropdown style */
+}
+
+.dropdown-item {
+    padding: 0.6rem 1.25rem;
+    transition: background-color 0.2s ease-in-out;
+    color: rgba(255, 255, 255, 0.75);
+    /* Example item color */
+}
+
+.dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+/* --- Top Navbar Styling (applied to .fixed-top-navbar on your <nav>) --- */
+/* Renamed from .fixed-top-mobile for clarity, as it's always a top navbar now */
+.fixed-top-navbar {
     position: fixed;
     top: 0;
     left: 0;
-  }
-  
-  .navbar-collapse {
+    right: 0;
+    /* Spans full width */
+    width: 100%;
+    /* Explicitly full width */
+    height: 70px;
+    /* CRITICAL: This is your navbar height. Body padding-top MUST match. */
+    /* background-color: #343a40; Already on .navbar, but can be specific if needed */
+}
+
+.fixed-top-navbar .container-fluid {
+    flex-direction: row;
+    /* Standard navbar flow for items (brand, toggler, collapse) */
+    align-items: center;
+    height: 100%;
+    /* Ensure container-fluid takes full height of navbar */
+    /* Bootstrap default for container-fluid in navbar is display: flex; justify-content: space-between; */
+}
+
+/* Navbar toggler should be visible on smaller screens as per Bootstrap defaults */
+/* .fixed-top-navbar .navbar-toggler { ... } */
+
+.fixed-top-navbar .navbar-collapse {
+    /* Bootstrap handles the display: none / display: flex based on navbar-expand-* and toggler */
+    width: 100%;
+    /* On mobile, when expanded, it can take full width or auto */
+    max-height: calc(100vh - 70px);
+    /* 70px is navbar height, prevent menu from being too tall */
+    overflow-y: auto;
+    /* Allow scrolling if menu items exceed height */
+    background-color: #343a40;
+    /* Ensure collapsed menu has background on mobile */
+    /* On larger screens (if not collapsed), it will align items horizontally */
+    /* Forcing flex-direction: row for larger screens if items were stacking */
+}
+
+@media (min-width: 992px) {
+
+    /* Or your chosen Bootstrap breakpoint e.g., lg */
+    .fixed-top-navbar .navbar-collapse {
+        width: auto;
+        /* Allow content to determine width */
+        background-color: transparent;
+        /* Usually transparent on desktop */
+        flex-direction: row;
+        /* Ensure items are in a row on desktop */
+        overflow-y: visible;
+        /* Reset overflow */
+    }
+
+    .fixed-top-navbar .navbar-nav {
+        flex-direction: row;
+        /* Ensure nav items are in a row */
+    }
+
+    .fixed-top-navbar .navbar-collapse .d-flex {
+        /* For login/register buttons */
+        flex-direction: row;
+        padding: 0;
+        /* Reset mobile padding */
+    }
+
+    .fixed-top-navbar .navbar-collapse .d-flex .btn {
+        margin-bottom: 0;
+        /* Reset mobile margin */
+        margin-left: 0.5rem;
+        /* Add some space between buttons if they are side-by-side */
+        width: auto;
+        /* Reset mobile width */
+    }
+
+    .fixed-top-navbar .navbar-collapse .d-flex .btn:first-child {
+        margin-left: 0;
+    }
+}
+
+
+.fixed-top-navbar .navbar-nav {
+    align-items: center;
+    /* Align nav items centered vertically in the navbar */
+    /* On mobile (when collapsed), Bootstrap default is flex-direction: column */
+    /* On desktop (when expanded), Bootstrap default is flex-direction: row */
+}
+
+/* Styling for buttons within the collapsed mobile menu */
+.fixed-top-navbar .navbar-collapse.show .d-flex {
+    /* Target only when collapsed and shown */
+    padding: 1rem;
+    /* Padding around buttons in collapsed menu */
     flex-direction: column;
-  }
-  
-  .container-fluid {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  
-  @media (max-width: 991px) {
-    .navbar {
-      height: auto;
-      width: 100%;
-      position: relative;
-    }
-  
-    .navbar-collapse {
-      flex-direction: row;
-    }
-  
-    .container-fluid {
-      flex-direction: row;
-      align-items: center;
-    }
-  }
+    /* Stack buttons in mobile view */
+}
+
+.fixed-top-navbar .navbar-collapse.show .d-flex .btn {
+    margin-bottom: 0.5rem;
+    width: 100%;
+    /* Make buttons full-width in collapsed menu */
+    margin-left: 0;
+    /* Reset desktop margin */
+}
+
+.fixed-top-navbar .navbar-collapse.show .d-flex .btn:last-child {
+    margin-bottom: 0;
+}

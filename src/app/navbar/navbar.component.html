@@ -1,6 +1,6 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark position-fixed" style="height: 100vh; width: 250px; top: 0; left: 0;">
-  <div class="container-fluid flex-column">
-    <a class="navbar-brand mb-4" routerLink="">BudgetInline</a>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top-navbar">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="">BudgetInline</a>
     <button
       class="navbar-toggler"
       type="button"
@@ -12,12 +12,13 @@
     >
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse flex-column" id="navbarSupportedContent">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
       @if (userService.currentUserSignal()) {
-      <ul class="navbar-nav flex-column mb-2">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item dropdown">
           <a
             class="nav-link dropdown-toggle"
+            href="#"
             role="button"
             data-bs-toggle="dropdown"
             aria-expanded="false"
@@ -30,12 +31,16 @@
                 >Current Month</a
               >
             </li>
-            <li><a class="dropdown-item" routerLink="">Edit Budget</a></li>
-            <li><a class="dropdown-item" routerLink="income">Income</a></li>
+            <li>
+              <a class="dropdown-item" routerLink="edit-budget">Edit Budget</a>
+            </li>
+            <li><a class="dropdown-item" routerLink="">Income</a></li>
           </ul>
         </li>
         <li class="nav-item">
-          <a class="nav-link" aria-current="page" routerLink="">Investments</a>
+          <a class="nav-link" aria-current="page" routerLink="investments"
+            >Investments</a
+          >
         </li>
         <li class="nav-item">
           <a class="nav-link" routerLink="debt-tracker">Debt</a>
@@ -52,15 +57,19 @@
         </li>
         }
       </ul>
-      <div class="d-flex mt-auto">
+      <div class="d-flex">
         <a class="btn btn-danger" (click)="logout()" routerLink="login"
           >Logout</a
         >
       </div>
       } @if (userService.currentUserSignal() == null) {
-      <div class="d-flex mt-auto">
-        <a class="btn btn-outline-light me-2" routerLink="login">Login</a>
-        <a class="btn btn-danger" routerLink="register">Register</a>
+      <div class="d-flex ms-auto">
+        <a class="btn btn-outline-light me-2 mb-2 mb-lg-0" routerLink="login"
+          >Login</a
+        >
+        <a class="btn btn-danger mb-2 mb-lg-0" routerLink="register"
+          >Register</a
+        >
       </div>
       }
     </div>

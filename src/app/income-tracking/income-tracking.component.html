@@ -87,8 +87,8 @@
     </div>
   </div>
 
-  <h2 class="mt-4">Base Data (Testing):</h2>
-  @if (incomes && incomes.length > 0) { @for (income of incomes; track income.id
+  <!-- <h2 class="mt-4">Base Data (Testing):</h2>
+  <!-- @if (incomes && incomes.length > 0) { @for (income of incomes; track income.id
   || $index) {
   <p>
     Month: {{ getFormattedDateForIncome(income) }} Amount:
@@ -96,5 +96,63 @@
   </p>
   } } @else {
   <p class="text-muted">No base income data to display.</p>
+  } -->
+  @if(!displayAddIncome){
+  <button class="btn btn-primary" (click)="onAddIncomeClick()">
+    + Add Income
+  </button>
+  } @else {
+  <div class="add-income-form-container-fancy">
+    <h2 class="form-title-fancy">Add Income</h2>
+
+    <div class="form-field-fancy">
+      <label for="incomeAmountFancy" class="form-label-fancy">Amount</label>
+      <input
+        type="number"
+        class="form-input-fancy"
+        id="incomeAmountFancy"
+        placeholder="e.g., 1500.00"
+        [(ngModel)]="newIncomeAmount"
+        name="newIncomeAmountFancy"
+        required
+        min="0.01"
+      />
+    </div>
+
+    <div class="form-field-fancy">
+      <label for="incomeMonthFancy" class="form-label-fancy">Month</label>
+      <select
+        class="form-select-fancy"
+        id="incomeMonthFancy"
+        aria-label="Month"
+        [(ngModel)]="selectedMonthValueForIncome"
+        name="selectedMonthValueForIncome"
+        (ngModelChange)="onNewIncomeMonthSelected()"
+        required
+      >
+        <option [ngValue]="null" selected disabled>-- Select Month --</option>
+        @for (month of monthOptions; track month.value) {
+        <option [value]="month.value">{{ month.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-actions-fancy mt-4">
+      <button
+        type="submit"
+        class="submit-button-fancy"
+        (click)="saveNewIncome()"
+      >
+        Save Income
+      </button>
+      <button
+        type="button"
+        class="cancel-button-fancy"
+        (click)="cancelAddIncome()"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
   }
 </div>

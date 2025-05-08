@@ -14,3 +14,154 @@
     color: inherit;
     /* Or your default text color, e.g., black */
 }
+
+/* Import a nice font (optional, add to your main CSS or HTML head) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+.add-income-form-container-fancy {
+    font-family: 'Poppins', sans-serif;
+    /* Using a modern sans-serif font */
+    background-color: #ffffff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    max-width: 450px;
+    /* Adjust as needed */
+    margin: 40px auto;
+    /* Centering the form */
+    border: 1px solid #e0e0e0;
+}
+
+.form-title-fancy {
+    text-align: center;
+    color: #333;
+    font-weight: 600;
+    font-size: 1.8em;
+    /* Slightly larger title */
+    margin-bottom: 30px;
+    /* More space below title */
+    position: relative;
+    /* For potential pseudo-element decoration */
+}
+
+/* Optional: A little underline accent for the title */
+.form-title-fancy::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background-color: #007bff;
+    /* Primary color accent */
+    margin: 10px auto 0;
+    border-radius: 2px;
+}
+
+.form-field-fancy {
+    margin-bottom: 25px;
+    /* More spacing between fields */
+}
+
+.form-label-fancy {
+    display: block;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+}
+
+.form-input-fancy,
+.form-select-fancy {
+    width: 100%;
+    padding: 12px 15px;
+    /* Comfortable padding */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    /* Softer corners */
+    font-size: 1em;
+    color: #333;
+    background-color: #f8f9fa;
+    /* Slight off-white background for inputs */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+    /* Important for width and padding */
+}
+
+.form-input-fancy::placeholder {
+    color: #999;
+}
+
+.form-input-fancy:focus,
+.form-select-fancy:focus {
+    outline: none;
+    border-color: #007bff;
+    /* Highlight color on focus */
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+    /* Subtle focus glow */
+}
+
+/* Specific styling for the select arrow (optional, can be tricky cross-browser) */
+.form-select-fancy {
+    appearance: none;
+    /* Remove default system appearance */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007bff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 12px 12px;
+    /* Adjust size of the arrow */
+    padding-right: 40px;
+    /* Make space for the custom arrow */
+}
+
+.submit-button-fancy {
+    display: block;
+    /* Make it a block to control width and margin */
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #007bff;
+    /* Primary button color */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    margin-top: 15px;
+    /* Space above the button */
+}
+
+.submit-button-fancy:hover {
+    background-color: #0056b3;
+    /* Darker shade on hover */
+}
+
+.submit-button-fancy:active {
+    transform: translateY(1px);
+    /* Slight press effect */
+}
+
+.cancel-button-fancy {
+    display: block;
+    /* Make it a block to control width and margin */
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #555;
+    /* Primary button color */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    margin-top: 15px;
+    /* Space above the button */
+}
+
+/* Ensure the selected disabled option is a bit muted */
+.form-select-fancy option[disabled] {
+    color: #999;
+}
