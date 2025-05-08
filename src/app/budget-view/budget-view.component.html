@@ -1,202 +1,336 @@
-<div class="container">
-  <h2 class="text-center">My Budget</h2>
+<div class="container mt-4">
+  <h2 class="text-center mb-4">My Budget</h2>
 
-  @if (userBudget?.budgetId) {
-  <p>Budget ID: {{ userBudget?.budgetId }}</p>
-  } @if (userBudget?.name) {
-  <p>Budget Name: {{ userBudget?.name }}</p>
-  } @if (userBudget?.uid) {
-  <p>User ID (owner): {{ userBudget?.uid }}</p>
-  } @if (userBudget && userBudget.categories) {
-  <h4>Budget Categories:</h4>
-  <ul class="list-group d-inline-flex">
-    @for (categoryItem of (userBudget.categories | keyvalue); track
-    categoryItem.key) {
-    <li class="list-group-item">
-      <div class="d-flex justify-content-between align-items-center">
-        <span>
-          {{ categoryItem.key }}:
-          {{ categoryItem.value | currency }}
-        </span>
-        <div>
-          <button
-            class="btn btn-sm btn-outline-secondary me-2"
-            (click)="
-              openEditCategoryModal(categoryItem.key, categoryItem.value)
-            "
+  @if (userId) { @if (userBudget?.budgetId) {
+  <div class="budget-meta mb-3">
+    <p><strong>Budget Name:</strong> {{ userBudget?.name }}</p>
+  </div>
+  }
+
+  <div class="budget-layout-container">
+    <div class="categories-column">
+      @if (userBudget && userBudget.categories &&
+      objectKeys(userBudget.categories).length > 0) {
+      <h4>Budget Categories</h4>
+      <ul class="list-group">
+        @for (categoryItem of (userBudget.categories | keyvalue); track
+        categoryItem.key) {
+        <li class="list-group-item mb-3 shadow-sm">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold fs-5">{{ categoryItem.key }}:</span>
+            <span>
+              @if(getCategoryTotalSpent(categoryItem.key) > categoryItem.value)
+              {
+              <strong class="overspent">OVERSPENT! </strong>
+              }
+              {{ getCategoryTotalSpent(categoryItem.key) | currency }}/{{
+                categoryItem.value | currency
+              }}
+            </span>
+          </div>
+          <div
+            class="d-flex justify-content-end align-items-center button-group mb-2"
           >
-            Edit Category
-          </button>
+            <button
+              class="btn btn-sm btn-outline-primary me-2"
+              (click)="
+                openEditCategoryModal(categoryItem.key, categoryItem.value)
+              "
+            >
+              Edit
+            </button>
+            <button
+              class="btn btn-sm btn-success me-2"
+              (click)="openAddTransactionModal(categoryItem.key)"
+            >
+              + Transaction
+            </button>
+            <button
+              class="btn btn-sm btn-outline-danger"
+              (click)="confirmDeleteCategory(categoryItem.key)"
+            >
+              Delete
+            </button>
+          </div>
+
+          @if (showEditCategoryModal && editingCategory?.oldName ===
+          categoryItem.key) {
+          <div class="modal-overlay" (click)="closeEditCategoryModal()">
+            <div
+              class="modal-content p-4 rounded shadow-lg"
+              (click)="$event.stopPropagation()"
+            >
+              <button
+                type="button"
+                class="btn-close"
+                aria-label="Close"
+                (click)="closeEditCategoryModal()"
+                style="position: absolute; top: 10px; right: 10px"
+              ></button>
+              <h5 class="mb-3">
+                Edit Category: {{ editingCategory?.oldName }}
+              </h5>
+              <div class="mb-3">
+                <label
+                  for="newCategoryName-{{ categoryItem.key }}"
+                  class="form-label"
+                  >New Category Name:</label
+                >
+                <input
+                  type="text"
+                  id="newCategoryName-{{ categoryItem.key }}"
+                  class="form-control"
+                  [(ngModel)]="newCategoryNameInput"
+                />
+              </div>
+              <div class="mb-3">
+                <label
+                  for="newCategoryAmount-{{ categoryItem.key }}"
+                  class="form-label"
+                  >New Category Amount:</label
+                >
+                <input
+                  type="number"
+                  id="newCategoryAmount-{{ categoryItem.key }}"
+                  class="form-control"
+                  [(ngModel)]="newCategoryAmountInput"
+                />
+              </div>
+              <button
+                class="btn btn-primary w-100"
+                (click)="submitEditCategory()"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+          }
+
+          <div class="mt-2 transactions-section">
+            <h6 class="text-muted">Transactions for {{ categoryItem.key }}:</h6>
+            @if (getTransactionsForCategory(categoryItem.key).length > 0) { @for
+            (transaction of getTransactionsForCategory(categoryItem.key); track
+            transaction.id) {
+            <div class="card my-1 p-2 transaction-item">
+              <div class="d-flex justify-content-between">
+                <button class="btn btn-sm btn-outline-secondary" (click)="deleteTransaction(transaction.id)">Delete</button>
+                <span>{{ transaction.name }}</span>
+                <span>{{ transaction.amount | currency }}</span>
+              </div>
+              <!-- <div class="text-muted small">
+                {{ transaction.date | date : "shortDate" }}
+              </div> -->
+            </div>
+            } } @else {
+            <p class="text-muted small">
+              No transactions for this category yet.
+            </p>
+            }
+          </div>
+        </li>
+        } @if (!displayAddCategory) {
+        <li class="list-group-item list-group-item-action text-center mt-2">
           <button
-            class="btn btn-sm btn-success me-2"
-            (click)="openAddTransactionModal(categoryItem.key)"
+            class="btn btn-outline-success w-100"
+            (click)="addCategoryClick()"
           >
-            + Add Transaction
+            + Add New Category
           </button>
-          <button
-            class="btn btn-sm btn-outline-danger"
-            (click)="confirmDeleteCategory(categoryItem.key)"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-      @if (showEditCategoryModal) {
-      <div class="modal-overlay" (click)="closeEditCategoryModal()">
-        <div class="modal-content" (click)="$event.stopPropagation()">
-          <button class="btn-close-modal" (click)="closeEditCategoryModal()">
-            X
-          </button>
-          <h5>Edit Category: {{ editingCategory?.oldName }}</h5>
-          <div class="mb-3">
-            <label for="newCategoryName" class="form-label"
-              >New Category Name:</label
+        </li>
+        } @else {
+        <li class="list-group-item add-category-form p-3 mt-2 shadow-sm">
+          <h5 class="mb-3">Add New Category</h5>
+          <div class="mb-2">
+            <label for="categoryName" class="form-label visually-hidden"
+              >Category Name:</label
             >
             <input
               type="text"
-              id="newCategoryName"
-              class="form-control"
-              [(ngModel)]="newCategoryNameInput"
+              class="form-control mb-2"
+              id="categoryName"
+              placeholder="Category Name"
+              [(ngModel)]="categoryName"
             />
           </div>
           <div class="mb-3">
-            <label for="newCategoryAmount" class="form-label"
-              >New Category Amount:</label
+            <label for="categoryAmount" class="form-label visually-hidden"
+              >Budgeted Amount:</label
             >
             <input
               type="number"
-              id="newCategoryAmount"
               class="form-control"
-              [(ngModel)]="newCategoryAmountInput"
+              id="categoryAmount"
+              placeholder="Budgeted Amount"
+              [(ngModel)]="categoryAmount"
             />
           </div>
-          <button class="btn btn-primary" (click)="submitEditCategory()">
-            Save Changes
-          </button>
+          <div class="d-flex justify-content-end">
+            <button
+              class="btn btn-sm btn-outline-secondary me-2"
+              (click)="cancelAddCategory()"
+            >
+              Cancel
+            </button>
+            <button class="btn btn-sm btn-primary" (click)="onClickAdd()">
+              Add Category
+            </button>
+          </div>
+        </li>
+        }
+      </ul>
+      } @else if (userBudget && (!userBudget.categories ||
+      objectKeys(userBudget.categories).length === 0) && !isLoadingBudget) {
+      <div class="text-center">
+        <p>This budget does not have any categories yet.</p>
+        @if (!displayAddCategory) {
+        <button class="btn btn-outline-success" (click)="addCategoryClick()">
+          + Add First Category
+        </button>
+        } @else {
+        <div
+          class="list-group-item add-category-form p-3 mt-2 shadow-sm"
+          style="max-width: 400px; margin: auto"
+        >
+          <h5 class="mb-3">Add New Category</h5>
+          <div class="mb-2">
+            <label for="categoryName" class="form-label visually-hidden"
+              >Category Name:</label
+            >
+            <input
+              type="text"
+              class="form-control mb-2"
+              id="categoryName"
+              placeholder="Category Name"
+              [(ngModel)]="categoryName"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="categoryAmount" class="form-label visually-hidden"
+              >Budgeted Amount:</label
+            >
+            <input
+              type="number"
+              class="form-control"
+              id="categoryAmount"
+              placeholder="Budgeted Amount"
+              [(ngModel)]="categoryAmount"
+            />
+          </div>
+          <div class="d-flex justify-content-end">
+            <button
+              class="btn btn-sm btn-outline-secondary me-2"
+              (click)="cancelAddCategory()"
+            >
+              Cancel
+            </button>
+            <button class="btn btn-sm btn-primary" (click)="onClickAdd()">
+              Add Category
+            </button>
+          </div>
         </div>
-      </div>
-      }
-
-      <div class="mt-2">
-        <h5>Transactions for {{ categoryItem.key }}:</h5>
-        @if (getTransactionsForCategory(categoryItem.key).length > 0) { @for
-        (transaction of getTransactionsForCategory(categoryItem.key); track
-        transaction.id) {
-        <div class="card my-1 p-2">
-          <p class="mb-0"><strong>Name:</strong> {{ transaction.name }}</p>
-          <p class="mb-0">
-            <strong>Amount:</strong>
-            {{ transaction.amount | currency }}
-          </p>
-        </div>
-
-        } } @else {
-        <p class="text-muted">No transactions for this category yet.</p>
         }
       </div>
-    </li>
-    } @if (!displayAddCategory) {
-    <li class="list-group-item">
-      <div class="d-flex justify-content-center align-items-center">
-        <button class="btn btn-outline-secondary" (click)="addCategoryClick()">
-          Add Category
-        </button>
+      }
+    </div>
+
+    <div class="chart-column">
+      @if (pieChartData.labels && pieChartData.labels.length > 0 &&
+      !isLoadingTransactions && !isLoadingBudget) {
+      <div class="chart-container p-3 shadow-sm rounded">
+        <h4 class="text-center mb-3">Spending Breakdown</h4>
+        <canvas
+          baseChart
+          [data]="pieChartData"
+          [type]="pieChartType"
+          [options]="pieChartOptions"
+          [plugins]="pieChartPlugins"
+          [legend]="pieChartLegend"
+        >
+        </canvas>
       </div>
-    </li>
+      } @else if (!isLoadingBudget && !isLoadingTransactions) {
+      <div class="text-center text-muted mt-5">
+        <p>No spending data to display in chart yet.</p>
+      </div>
+      }
+    </div>
+  </div>
+
+  @if (!userBudget && !isLoadingBudget) {
+  <div class="text-center mt-5">
+    <p>No budget found for this user.</p>
+    @if (!displayAddBudget) {
+    <button class="btn btn-primary btn-lg" (click)="addBudgetDialogue()">
+      + Create New Budget
+    </button>
     } @else {
-    <li class="list-group-item">
-      <div class="d-flex justify-content-center align-items-center">
-        <label for="categoryName" class="form-label">Name:</label>
+    <div
+      class="add-budget-form p-4 mt-3 shadow-sm rounded"
+      style="max-width: 400px; margin: auto"
+    >
+      <h5 class="mb-3">Create New Budget</h5>
+      <div class="mb-2">
+        <label for="newBudgetName" class="form-label visually-hidden"
+          >Budget Name:</label
+        >
         <input
           type="text"
-          class="form-control"
-          id="categoryName"
-          [(ngModel)]="categoryName"
+          class="form-control mb-2"
+          id="newBudgetName"
+          placeholder="Budget Name"
+          [(ngModel)]="newBudgetName"
         />
-        <label for="categoryAmount" class="form-label">Amount</label>
+      </div>
+      <div class="mb-3">
+        <label for="newBudgetAmount" class="form-label visually-hidden"
+          >Overall Budget Amount (Optional):</label
+        >
         <input
-          type="text"
+          type="number"
           class="form-control"
-          id="categoryAmount"
-          [(ngModel)]="categoryAmount"
+          id="newBudgetAmount"
+          placeholder="Overall Budget Amount"
+          [(ngModel)]="newBudgetAmount"
         />
-        <button class="btn btn-outline-primary" (click)="onClickAdd()">
-          Add
+      </div>
+      <div class="d-flex justify-content-end">
+        <button
+          class="btn btn-sm btn-outline-secondary me-2"
+          (click)="cancelAddBudget()"
+        >
+          Cancel
+        </button>
+        <button class="btn btn-sm btn-primary" (click)="addBudget()">
+          Create Budget
         </button>
       </div>
-    </li>
+    </div>
     }
-  </ul>
-  } @else if (userBudget && !userBudget.categories) {
-  <p>This budget does not have any specific categories defined.</p>
-  @if (!displayAddCategory) {
-  <li class="list-group-item">
-    <div class="d-flex justify-content-center align-items-center">
-      <button class="btn btn-outline-secondary" (click)="addCategoryClick()">
-        Add Category
-      </button>
+  </div>
+  } } @else if (!userId && !isLoadingBudget && !isLoadingTransactions) {
+  <p class="text-center text-muted mt-5">
+    Please log in to view or create a budget.
+  </p>
+  } @if (isLoadingBudget || isLoadingTransactions) {
+  <div class="text-center mt-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
     </div>
-  </li>
-  } @else {
-  <li class="list-group-item">
-    <div class="d-flex justify-content-center align-items-center">
-      <label for="categoryName" class="form-label">Name:</label>
-      <input
-        type="text"
-        class="form-control"
-        id="categoryName"
-        [(ngModel)]="categoryName"
-      />
-      <label for="categoryAmount" class="form-label">Amount</label>
-      <input
-        type="text"
-        class="form-control"
-        id="categoryAmount"
-        [(ngModel)]="categoryAmount"
-      />
-      <button class="btn btn-outline-primary" (click)="onClickAdd()">
-        Add
-      </button>
-    </div>
-  </li>
-  } } @else if (!userBudget){ @if (!displayAddBudget) {
-  <li class="list-group-item">
-    <div class="d-flex justify-content-center align-items-center">
-      <button class="btn btn-outline-secondary" (click)="addBudgetDialogue()">
-        + New Budget
-      </button>
-    </div>
-  </li>
-  } @else {
-  <li class="list-group-item">
-    <div class="d-flex justify-content-center align-items-center">
-      <label for="categoryName" class="form-label">Name:</label>
-      <input
-        type="text"
-        class="form-control"
-        id="categoryName"
-        [(ngModel)]="newBudgetName"
-      />
-      <label for="categoryAmount" class="form-label">Amount</label>
-      <input
-        type="text"
-        class="form-control"
-        id="categoryAmount"
-        [(ngModel)]="newBudgetAmount"
-      />
-      <button class="btn btn-outline-primary" (click)="addBudget()">Add</button>
-    </div>
-  </li>
-  } } @else if (!isLoadingBudget) {
-  <p>No budget found for this user, or budget is still loading.</p>
-  } @if (isLoadingBudget) {
-  <p>Loading budget...</p>
+    <p class="mt-2">Loading data...</p>
+  </div>
   } @if (showAddTransactionModal) {
   <div class="modal-overlay" (click)="closeAddTransactionModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <button class="btn-close-modal" (click)="closeAddTransactionModal()">
-        X
-      </button>
+    <div
+      class="modal-content p-4 rounded shadow-lg"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        type="button"
+        class="btn-close"
+        aria-label="Close"
+        (click)="closeAddTransactionModal()"
+        style="position: absolute; top: 10px; right: 10px"
+      ></button>
       <app-add-transaction
         [inputCategory]="selectedCategoryForNewTransaction"
         [inputId]="userId ?? undefined"

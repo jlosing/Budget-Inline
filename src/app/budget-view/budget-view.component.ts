@@ -7,7 +7,8 @@ import { Budget, BudgetService } from '../budget.service';
 import { Transaction, TransactionService } from '../transaction.service';
 import { UserService } from '../user.service';
 import { Timestamp } from '@angular/fire/firestore';
-
+import { NgChartsModule } from 'ng2-charts';
+import { ChartOptions, ChartData } from 'chart.js'; // Changed ChartType to ChartData here for pieChartData
 
 type BudgetOmitData = Omit<Budget, 'budgetId' | 'categories'>;
 
@@ -18,6 +19,7 @@ type BudgetOmitData = Omit<Budget, 'budgetId' | 'categories'>;
     CommonModule,
     AddTransactionComponent,
     FormsModule,
+    NgChartsModule
   ],
   templateUrl: './budget-view.component.html',
   styleUrls: ['./budget-view.component.css']
@@ -30,14 +32,12 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
   displayAddCategory = false;
   displayAddBudget = false;
 
-
   transactions: Transaction[] = [];
   isLoadingBudget: boolean = false;
   isLoadingTransactions: boolean = false;
 
   categoryName: string | null = null;
   categoryAmount: number | null = null;
-
 
   private budgetSubscription: Subscription | undefined;
   private transactionsSubscription: Subscription | undefined;
@@ -50,8 +50,6 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
 
   newBudgetName: string | null = null;
   newBudgetAmount: number | null = null;
-  newBudgetCategories: { [categoryName: string]: number } | null = null;
-  newBudgetUid: string | null = this.userId;
 
   userBudget: Budget | null = null;
   
@@ -66,6 +64,37 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
   newCategoryNameInput: string = '';
   newCategoryAmountInput: number | null = null;
 
+  public pieChartOptions: ChartOptions<'pie'> = {
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Monthly Spending by Category'
+      },
+      legend: {
+        position: 'top',
+      },
+    }
+  };
+
+  public pieChartData: ChartData<'pie', number[], string | string[]> = {
+    labels: [],
+    datasets: [
+      {
+        data: [],
+        backgroundColor: [ // Optional: Add some default colors
+          '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+          '#9966FF', '#FF9F40', '#C9CBCF', '#7BC225'
+        ]
+      }
+    ]
+  };
+  public pieChartType: 'pie' = 'pie'; // Made type more specific
+  public pieChartLegend = true; // This can be controlled via options too
+  public pieChartPlugins = [];
+
+  objectKeys = Object.keys;
+
   ngOnInit(): void {
     this.userSubscription = this.userService.user$.subscribe(user => {
       if (user) {
@@ -78,6 +107,7 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
         this.transactions = [];
         this.isLoadingBudget = false;
         this.isLoadingTransactions = false;
+        this.updatePieChartData();
       }
     });
   }
@@ -86,6 +116,7 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
     if (!this.userId) {
       this.userBudget = null;
       this.isLoadingBudget = false;
+      this.updatePieChartData();
       return;
     }
     this.isLoadingBudget = true;
@@ -93,34 +124,97 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
       next: (budget) => {
         this.userBudget = budget;
         this.isLoadingBudget = false;
+        this.updatePieChartData();
       },
       error: (err) => {
         console.error(`Error fetching budget for UID "${this.userId}":`, err);
         this.isLoadingBudget = false;
+        this.updatePieChartData();
       }
     });
   }
 
-  loadTransactions(): void {
-  if (!this.userId) {
-    this.transactions = [];
-    this.isLoadingTransactions = false;
-    return;
-  }
-  this.isLoadingTransactions = true;
-  this.transactionsSubscription = this.transactionService.getTransactionsId(this.userId).subscribe({
-    next: () => {
-      this.isLoadingTransactions = false;
-    },
-    error: (err) => {
-      console.error(`Error fetching transactions for UID "${this.userId}":`, err);
-      this.isLoadingTransactions = false;
+  deleteTransaction(id: string | undefined) {
+    if(id == undefined) {
+      console.log("undefined id");
+      return
     }
-  });
-}
+    else {
+      this.transactionService.deleteTransaction(id);
+    }
+  }
+
+  loadTransactions(): void {
+    if (!this.userId) {
+      this.transactions = [];
+      this.isLoadingTransactions = false;
+      this.updatePieChartData();
+      return;
+    }
+    this.isLoadingTransactions = true;
+    this.transactionsSubscription = this.transactionService.getTransactionsId(this.userId).subscribe({
+      next: (fetchedTransactions: Transaction[]) => {
+        const processedTransactions = fetchedTransactions.map(transaction => {
+          if (transaction.date && typeof (transaction.date as any).toDate === 'function') {
+            return {
+              ...transaction,
+              date: (transaction.date as Timestamp).toDate()
+            };
+          } else if (transaction.date instanceof Date) {
+            return transaction;
+          }
+          return transaction;
+        });
+        this.transactions = processedTransactions;
+        this.isLoadingTransactions = false;
+        this.updatePieChartData();
+      },
+      error: (err) => {
+        console.error(`Error fetching transactions for UID "${this.userId}":`, err);
+        this.isLoadingTransactions = false;
+        this.updatePieChartData();
+      }
+    });
+  }
+
+  updatePieChartData(): void {
+    if (this.userBudget && this.userBudget.categories && this.transactions) {
+      const categoryKeys = Object.keys(this.userBudget.categories);
+      const spentData: number[] = [];
+      const labels: string[] = [];
+  
+      categoryKeys.forEach(key => {
+        const totalSpent = this.getCategoryTotalSpent(key);
+        if (totalSpent > 0) { 
+          labels.push(key);
+          spentData.push(totalSpent);
+        }
+      });
+  
+      this.pieChartData = {
+        labels: labels,
+        datasets: [
+          {
+            data: spentData,
+            backgroundColor: this.pieChartData.datasets[0].backgroundColor // Preserve original colors
+          }
+        ]
+      };
+    } else {
+      this.pieChartData = {
+        labels: [],
+        datasets: [{ data: [], backgroundColor: this.pieChartData.datasets[0].backgroundColor }]
+      };
+    }
+  }
 
   getTransactionsForCategory(categoryKey: string): Transaction[] {
     return this.transactions.filter(t => t.category === categoryKey);
+  }
+
+  getCategoryTotalSpent(categoryKey: string): number {
+    const transactionsForCategory = this.getTransactionsForCategory(categoryKey);
+    return transactionsForCategory.reduce((sum, transaction) => sum + transaction.amount, 0);
   }
 
   openAddTransactionModal(category: string): void {
@@ -146,12 +240,19 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  cancelAddCategory() {
+    this.displayAddCategory = false;
+    this.categoryName = '';
+    this.categoryAmount = null;
+  }
+
   async onClickAdd() {
     if (this.categoryName && this.categoryAmount != null && this.userBudget?.budgetId && this.userId) {
       try {
         await this.budgetService.addCategoryToBudget(this.userBudget.budgetId, this.categoryName, this.categoryAmount);
         this.categoryAmount = null;
         this.categoryName = '';
+        this.displayAddCategory = false;
         this.loadBudget();
       } catch (error) {
         console.error("Error adding category to budget:", error);
@@ -159,7 +260,6 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
     } else {
       console.log("Error adding budget: Invalid data or budget ID missing.");
     }
-    this.addCategoryClick();
   }
 
   openEditCategoryModal(oldName: string, oldAmount: number): void {
@@ -178,7 +278,6 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
 
   async submitEditCategory(): Promise<void> {
     if (!this.editingCategory || !this.userBudget?.budgetId || !this.userId || !this.newCategoryNameInput.trim() || this.newCategoryAmountInput == null) {
-      console.error("Cannot edit category: required information is missing.");
       return;
     }
 
@@ -198,11 +297,9 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
 
     try {
       await this.budgetService.editCategoryName(this.userBudget.budgetId, oldName, newName, newAmount);
-
       if (oldName !== newName) {
         await this.transactionService.updateCategoryForTransactions(this.userId, oldName, newName);
       }
-
       this.loadBudget();
       this.loadTransactions();
       this.closeEditCategoryModal();
@@ -213,7 +310,6 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
 
   async confirmDeleteCategory(categoryName: string): Promise<void> {
     if (!this.userBudget?.budgetId || !this.userId) {
-      console.error("Cannot delete category: user or budget information is missing.");
       return;
     }
 
@@ -221,7 +317,6 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
       try {
         await this.budgetService.deleteCategory(this.userBudget.budgetId, categoryName);
         await this.transactionService.deleteTransactionsByCategory(this.userId, categoryName);
-
         this.loadBudget();
         this.loadTransactions();
       } catch (error) {
@@ -232,22 +327,31 @@ export class BudgetViewComponent implements OnInit, OnDestroy {
 
   addBudgetDialogue() {
     this.displayAddBudget = true;
+    this.newBudgetName = '';
+    this.newBudgetAmount = null;
+  }
+
+  cancelAddBudget() {
+    this.displayAddBudget = false;
+    this.newBudgetName = '';
+    this.newBudgetAmount = null;
   }
 
   addBudget() {
     if (!this.newBudgetAmount|| !this.newBudgetName || !this.userId) {
-      console.log("error: missing budget information");
-      console.log("amount: " + this.newBudgetAmount + " name: " + this.newBudgetName + " id: " + this.userId)
       return;
+    }
+    else {
+      this.userAddBudget.uid = this.userId;
+      this.userAddBudget.amount = this.newBudgetAmount;
+      this.userAddBudget.name = this.newBudgetName;
+      this.budgetService.addBudget(this.userAddBudget);
+      this.displayAddBudget = false;
+      this.newBudgetName = '';
+      this.newBudgetAmount = null;
+    }
   }
-  else {
-    this.userAddBudget.uid = this.userId;
-    this.userAddBudget.amount = this.newBudgetAmount;
-    this.userAddBudget.name = this.newBudgetName;
-    this.budgetService.addBudget(this.userAddBudget);
-    this.displayAddBudget = false;
-  }
-}
+
 
   ngOnDestroy(): void {
     if (this.budgetSubscription) {
