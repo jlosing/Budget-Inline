@@ -1,17 +1,37 @@
-<h1>Login</h1>
-
-@if (errorMessage) {
+@if (userService.currentUserSignal() == null) {
+<div class="card mb-3 p-4">
+  <h1 class="card-title mb-3 justify-center-content" style="text-align: center">
+    Login
+  </h1>
+  @if (errorMessage) {
   <div>{{ errorMessage }}</div>
-}
+  }
 
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <div>
-    <input type="text" placeholder="Email" formControlName="email" />
-  </div>
-  <div>
-    <input type="password" placeholder="Password" formControlName="password" />
-  </div>
-  <div>
-    <button type="submit">Sign In</button>
-  </div>
-</form>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <p class="card-text text-muted">
+      Email:
+      <input
+        class="form-control"
+        type="text"
+        placeholder=""
+        formControlName="email"
+      />
+    </p>
+    <p class="card-text text-muted">
+      Password:
+      <input
+        class="form-control"
+        type="password"
+        placeholder=""
+        formControlName="password"
+      />
+    </p>
+    <br />
+    <div class="text-center">
+      <button class="btn btn-primary" style="min-width: 200px" type="submit">
+        Sign In
+      </button>
+    </div>
+  </form>
+</div>
+}
